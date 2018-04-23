@@ -5,14 +5,19 @@ typedef struct mpi_req {
 
 static ffop_t *    posted_ops[FFMPI_MAX_REQ];
 static MPI_Request requests[FFMPI_MAX_REQ];
+static mpi_req_t   mpi_requests[FFMPI_MAX_REQ];
+
 static mpi_req_t * free_requests;
 static mpi_req_t * busy_requests;
 
+static fflock_t progress_lock;
+
 int ffop_mpi_progresser_init(){
 
-    free_requests = (mpi_req_t *) malloc(sizeof(mpi_req_t)*(FFMPI_MAX_REQ+1));
+    FFLOCK_INIT(&progress_lock);
 
-    if (free_requests==NULL) return FFENOMEM;
+    FFLOCK(&progress_lock);
+    free_requests = mpi_requests; 
 
     for (int i=0; i<FFMPI_MAX_REQ; i++){
         requests[i] = MPI_REQUEST_NULL;
@@ -23,8 +28,14 @@ int ffop_mpi_progresser_init(){
 
     free_requests[FFMPI_MAX_REQ-1].next = NULL;
     busy_requests = NULL;
- 
-    return FFSUCCESS;   
+    
+    FFUNLOCK(&progress_lock);
+    return FFSUCCESS;
+}
+
+int ffop_mpi_progresser_finalize(){
+    FFLOCK_FREE(&progress_lock);
+    return FFSUCCESS;
 }
 
 int ffop_mpi_progresser_track(ffop_t * op){
@@ -33,7 +44,8 @@ int ffop_mpi_progresser_track(ffop_t * op){
         FFLOG_ERROR("Too many in-flight MPI operations! (check FFMPI_MAX_REQ)");
         return FFENOMEM;
     }
-    
+
+    FFLOCK(&progress_lock);
     mpi_req_t * req = free_requests;
     free_requests = free_requests->next;
     req->next = busy_requests;
@@ -42,6 +54,7 @@ int ffop_mpi_progresser_track(ffop_t * op){
     requests[req->idx] = op->transport.mpireq;
     posted_ops[req->idx] = op;
     op->transport.idx = req->idx;
+    FFUNLOCK(&progress_lock);
     
     return FFSUCCESS;
 }
@@ -49,18 +62,21 @@ int ffop_mpi_progresser_track(ffop_t * op){
 int ffop_mpi_progresser_release(ffop_t * op){
     assert(busy_requests!=NULL);
 
+    FFLOCK(&progress_lock);
     /* get an mpi_req_t that is currently not used for tracing the free slots */
     mpi_req_t * req = busy_requests;
     busy_requests = busy_requests->next;
+
+    /* put it into the free_requests list */
+    req->next = free_requests;
+    free_requests = req;
+    FFUNLOCK(&progress_lock);
 
     /* initialize it */
     req->idx = op->transport.idx;    
     requests[req->idx] = MPI_REQUEST_NULL;
     posted_ops[req->idx] = NULL;
-    
-    /* put it into the free_requests list */
-    req->next = free_requests;
-    free_requests = req;
+
 
     return FFSUCCESS;
 }
@@ -87,7 +103,7 @@ int ffop_mpi_progresser_progress(ffop_t ** ready_list){
     for (int i=0; i<outcount; i++){
         posted_ops[ready_indices[i]]->next = *ready_list;
         *ready_list = posted_ops[ready_indices[i]];
-        ffop_mpi_complete(postedops[ready_indices[i]]);
+        ffop_mpi_progresser_release(postedops[ready_indices[i]]);
     }
     
     return FFSUCCESS;

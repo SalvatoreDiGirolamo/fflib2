@@ -24,6 +24,7 @@ int ffsend(void * buffer, size_t size, int source, int tag, MPI_Comm comm,
         op->send.buffer.ptr = buffer;
     }
 
+
     ops[FFSEND].init(op);
     
     return FFSUCCESS;
