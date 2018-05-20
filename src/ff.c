@@ -4,7 +4,7 @@
 #include "ffprogress.h"
 #include "ffinternal.h"
 
-#include "mpi/ff_mpi.h"
+#include "mpi/ffmpi.h"
 
 static ffdescr_t ff;
 
@@ -17,10 +17,10 @@ int ffinit(int * argc, char *** argv){
     ret = pthread_create(&(ff.progress_thread), NULL, progress_thread, &ff);
     if (ret){ return FFERROR; }
 
-    ff.impl_init = ff_mpi_init;
-    ff.impl_finalize = ff_mpi_finalize;
-    ff.impl_get_rank = ff_mpi_get_rank;
-    ff.impl_get_size = ff_mpi_get_size;
+    ff.impl_init = ffmpi_init;
+    ff.impl_finalize = ffmpi_finalize;
+    ff.impl_get_rank = ffmpi_get_rank;
+    ff.impl_get_size = ffmpi_get_size;
 
     ff.impl_init(argc, argv);
 
