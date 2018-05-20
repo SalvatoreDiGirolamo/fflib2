@@ -1,7 +1,7 @@
 #include "ffsend.h"
 #include "ffop.h"
 
-int ffsend(void * buffer, size_t size, int source, int tag, 
+int ffsend(void * buffer, int count, ffdatatype_t datatype, int source, int tag, 
     int options, ffop_h * _op){
     
     ffop_t * op = (ffop_t *) _op;
@@ -11,10 +11,13 @@ int ffsend(void * buffer, size_t size, int source, int tag,
     op->in_dep_count=0;
     op->next = NULL;
 
+    op->completed = 0;
+
     op->send.peer = source;
     op->send.tag = tag;
 
-    op->send.buffer.size = size;
+    op->send.buffer.count = count;
+    op->send.buffer.datatype = datatype;
 
     if (options & FFOP_MEM_IDX == FFOP_MEM_IDX){
         op->send.buffer.type = FFOP_MEM_IDX;

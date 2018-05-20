@@ -1,17 +1,17 @@
 
 #include "ffop_mpi_progresser.h"
 #include "../utils/ffarman.h"
-#include "../utils/fflock.h"
+//#include "../utils/fflock.h"
 
 static ffop_t *    posted_ops[FFMPI_MAX_REQ];
 static MPI_Request requests[FFMPI_MAX_REQ];
 static ffarman_t   index_manager;
 
-static fflock_t progress_lock;
+//static fflock_t progress_lock;
 
 int ffop_mpi_progresser_init(){
 
-    FFLOCK_INIT(&progress_lock);
+    //FFLOCK_INIT(&progress_lock);
     if (ffarman_create(FFMPI_MAX_REQ, &index_manager)!=FFSUCCESS){
         return FFERROR;
     }
@@ -20,8 +20,8 @@ int ffop_mpi_progresser_init(){
 }
 
 int ffop_mpi_progresser_finalize(){
-    farman_free(index_manager);
-    FFLOCK_FREE(&progress_lock);
+    ffarman_free(index_manager);
+    //FFLOCK_FREE(&progress_lock);
     return FFSUCCESS;
 }
 
@@ -34,20 +34,18 @@ int ffop_mpi_progresser_track(ffop_t * op, MPI_Request req){
         return FFENOMEM;
     }
 
-    requests[idx] = req;
-    op->transport.idx = idx;
     posted_ops[idx] = op;
+    requests[idx] = req;
     
     return FFSUCCESS;
 }
 
-int ffop_mpi_progresser_release(ffop_t * op){
+int ffop_mpi_progresser_release(uint32_t idx){
 
-    uint32_t idx = op->transport.idx;    
     ffarman_put(index_manager, idx);
     
-    requests[req->idx] = MPI_REQUEST_NULL;
-    posted_ops[req->idx] = NULL;
+    requests[idx] = MPI_REQUEST_NULL;
+    posted_ops[idx] = NULL;
 
     return FFSUCCESS;
 }
@@ -66,11 +64,14 @@ int ffop_mpi_progresser_progress(ffop_t ** ready_list){
     }
     
     for (int i=0; i<outcount; i++){
-        ffop_t * readyop = postedops[ready_indices[i]];
-
+        ffop_t * readyop = posted_ops[ready_indices[i]];
         readyop->next = *ready_list;
         *ready_list = readyop;
-        ffop_mpi_progresser_release(readyop);
+        
+        /* mark the operation as complete */ 
+        __sync_add_and_fetch(&(readyop->completed), 1);
+
+        ffop_mpi_progresser_release(ready_indices[i]);
     }
     
     return FFSUCCESS;

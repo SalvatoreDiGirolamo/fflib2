@@ -1,6 +1,7 @@
 #ifndef _FFSEND_H_
 #define _FFSEND_H_
 
+#include "ff.h"
 #include "ffinternal.h"
 #include "ffop_mem.h"
 #include "mpi/ffop_mpi.h"
@@ -19,6 +20,5 @@ typedef struct ffsend{
 } ffsend_t;
 
 int ffsend_post(ffop_t * op, ffop_mem_set_t * mem);
-int ffsend_create(void * buffer, size_t size, int source, int tag, int options, ffop_t * io);
 
 #endif /* _FFSEND_H_ */

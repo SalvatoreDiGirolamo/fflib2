@@ -24,8 +24,9 @@ int ffop_mpi_send_post(ffop_t * op, ffop_mem_set_t * mem){
         buffer = mem->buffers[send->buffer.idx];
     }
 
-    res = MPI_ISend(buffer, send->buffer.size, MPI_CHAR, send->peer, send->tag, MPI_COMM_WORLD, 
-        &(send->transport.mpireq));
+    res = MPI_Isend(buffer, send->buffer.count, 
+            datatype_translation_table[send->buffer.datatype], send->peer, 
+            send->tag, MPI_COMM_WORLD, &(send->transport.mpireq));
 
     if (res!=MPI_SUCCESS) return FFERROR;
     return ffop_mpi_progresser_track(op, send->transport.mpireq);

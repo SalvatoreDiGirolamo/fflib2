@@ -6,8 +6,6 @@
 typedef struct ffcomp{
     ffop_mem_t buffer1;
     ffop_mem_t buffer2;
-    uint32_t count;
-    ffdatatype_t datatype;
     ffoperator_t op;
     uint8_t flags;
 

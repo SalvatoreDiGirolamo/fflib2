@@ -8,6 +8,8 @@
 #define FFCOMP 2
 #define FFMAX_IDX 3 /* not actual op, just boundary for ops indexes */
 
+#define FFPOLLS_BEFORE_YIELD 1000
+
 #include "ffinternal.h"
 #include "ffsend.h"
 #include "ffrecv.h"
@@ -38,20 +40,16 @@ struct ffop{
     struct ffop * next;
 
     /* flag that is set to true (!=0) if the op is completed */
-    uint8_t completed;
+    volatile uint8_t completed;
 
 };
 
 typedef int (*ffop_post_t)(ffop_t*, ffop_mem_set_t*);
-typedef int (*ffop_wait_t)(ffop_t*);
-typedef int (*ffop_test_t)(ffop_t*, int*);
 typedef int (*ffop_init_t)(ffop_t*);
 
 typedef struct ffop_descriptor{
     ffop_init_t init;
     ffop_post_t post;
-    ffop_wait_t wait;
-    ffop_test_t test;
 } ffop_descriptor_t;
 
 

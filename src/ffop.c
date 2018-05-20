@@ -5,9 +5,7 @@
 
 #include "mpi/ffop_mpi.h"
 
-int ffop_default_test(ffop_t * op);
-int ffop_default_wait(ffop_t * op);
-
+#include <sched.h>
 
 ffop_descriptor_t ops[FFMAX_IDX];
 
@@ -15,13 +13,9 @@ int ffop_init(){
 
     ops[FFSEND].init = ffop_mpi_init;
     ops[FFSEND].post = ffop_mpi_send_post;
-    ops[FFSEND].wait = ffop_mpi_wait;
-    ops[FFSEND].test = ffop_mpi_test;
 
     ops[FFRECV].init = ffop_mpi_init;
     ops[FFRECV].post = ffop_mpi_recv_post;
-    ops[FFRECV].wait = ffop_mpi_wait;
-    ops[FFRECV].test = ffop_mpi_test;
 
     return FFSUCCESS;
 }
@@ -36,18 +30,23 @@ int ffop_post(ffop_h _op){
 
 int ffop_wait(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
-#ifdef ARGS_CHECK
-    if (ops->type<0 || ops->type>FFMAX_IDX) return FFINVALID_ARG;
-#endif
-    return ops[op->type].wait(op);
+
+    uint32_t polls=0;
+    while (op->completed==0){
+        if (polls >= FFPOLLS_BEFORE_YIELD){
+            polls=0;
+            sched_yield();
+        }else {
+            polls++;
+        }
+    }
+
+    return FFSUCCESS;
 }
 
 int ffop_test(ffop_h _op, int * flag){
     ffop_t * op = (ffop_t *) _op;
-#ifdef ARGS_CHECK
-    if (ops->type<0 || ops->type>FFMAX_IDX) return FFINVALID_ARG;
-#endif
-    return ops[op->type].test(op, flag);
+    return op->completed!=0;
 }
 
 

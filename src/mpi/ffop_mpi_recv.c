@@ -24,8 +24,9 @@ int ffop_mpi_recv_post(ffop_t * op, ffop_mem_set_t * mem){
         buffer = mem->buffers[recv->buffer.idx];
     }
 
-    res = MPI_Irecv(buffer, recv->size, MPI_CHAR, recv->peer, recv->tag, MPI_COMM_WORLD, 
-        &(recv->transport.mpireq));
+    res = MPI_Irecv(buffer, recv->buffer.count, 
+            datatype_translation_table[recv->buffer.datatype], recv->peer, 
+            recv->tag, MPI_COMM_WORLD, &(recv->transport.mpireq));
 
     if (res!=MPI_SUCCESS) return FFERROR;
     return ffop_mpi_progresser_track(op, recv->transport.mpireq);

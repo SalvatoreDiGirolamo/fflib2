@@ -1,6 +1,7 @@
 #ifndef _FFRECV_H_
 #define _FFRECV_H_
 
+#include "ff.h"
 #include "ffinternal.h"
 #include "ffop_mem.h"
 #include "mpi/ffop_mpi.h"

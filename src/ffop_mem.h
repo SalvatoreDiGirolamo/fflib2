@@ -1,6 +1,7 @@
 #ifndef _FFOP_MEM_H_
 #define _FFOP_MEM_H_
 
+#include "ff.h"
 #include "ffinternal.h"
 
 #define FFOP_MEM_PTR 0x2 
@@ -18,7 +19,8 @@ typedef struct ffop_mem{
         uint32_t idx;
     };
 
-    size_t size;
+    uint32_t count;
+    ffdatatype_t datatype;
 
 } ffop_mem_t;
 
