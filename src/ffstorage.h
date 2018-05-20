@@ -18,7 +18,8 @@ typedef struct ffmem_block{
 
 typedef struct ffpool{
     ff_mem_block_t * head;
-    uint32_t increment;
+    uint32_t pool_size;
+    uint32_t curr_size;
 } ffpool_t;
 
 

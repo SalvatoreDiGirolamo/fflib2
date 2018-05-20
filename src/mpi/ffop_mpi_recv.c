@@ -1,27 +1,33 @@
 
+#include "ffop_mpi.h"
+#include "ffop_mpi_progresser.h"
+#include "../ffrecv.h"
+
 int ffop_mpi_recv_post(ffop_t * op, ffop_mem_set_t * mem){
     int res;
 
+    ffrecv_t * recv = &(op->recv);
+
 #ifdef CHECK_ARGS
-    if (op==NULL) return FFINVALID_ARG;
+    if (op==NULL || op!=FFRECV) return FFINVALID_ARG;
     
-    if (op->buffer.type == FFOP_MEM_IDX && (mem==NULL ||
-            op->buffer.idx > mem->length)){
+    if (recv->buffer.type == FFOP_MEM_IDX && (mem==NULL ||
+            recv->buffer.idx > mem->length)){
         return FFINVALID_ARG;
     }
 #endif
 
     void * buffer;
-    if (op->buffer.type == FFOP_MEM_PTR){
-        buffer = op->buffer.ptr;
+    if (recv->buffer.type == FFOP_MEM_PTR){
+        buffer = recv->buffer.ptr;
     }else{
-        buffer = mem->buffers[op->buffer.idx];
+        buffer = mem->buffers[recv->buffer.idx];
     }
 
-    res = MPI_Irecv(buffer, op->size, MPI_CHAR, op->peer, op->tag, op->mpicomm, 
-        &(op->transport.mpireq));
+    res = MPI_Irecv(buffer, recv->size, MPI_CHAR, recv->peer, recv->tag, MPI_COMM_WORLD, 
+        &(recv->transport.mpireq));
 
     if (res!=MPI_SUCCESS) return FFERROR;
-    return ffop_mpi_progresser_track(op);
+    return ffop_mpi_progresser_track(op, recv->transport.mpireq);
 }
 

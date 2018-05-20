@@ -9,7 +9,7 @@ int ffop_default_test(ffop_t * op);
 int ffop_default_wait(ffop_t * op);
 
 
-static ffop_descriptor_t ops[FFMAX_IDX];
+ffop_descriptor_t ops[FFMAX_IDX];
 
 int ffop_init(){
 
@@ -26,29 +26,34 @@ int ffop_init(){
     return FFSUCCESS;
 }
 
-int ffop_post(ffop_h op){
+int ffop_post(ffop_h _op){
+    ffop_t * op = (ffop_t *) _op;
 #ifdef ARGS_CHECK
     if (ops->type<0 || ops->type>FFMAX_IDX) return FFINVALID_ARG;
 #endif
-    return ops[op->type].post((ffop_t *) op, NULL);
+    return ops[op->type].post(op, NULL);
 }
 
-int ffop_wait(ffop_h op){
+int ffop_wait(ffop_h _op){
+    ffop_t * op = (ffop_t *) _op;
 #ifdef ARGS_CHECK
     if (ops->type<0 || ops->type>FFMAX_IDX) return FFINVALID_ARG;
 #endif
-    return ops[op->type].wait((ffop_t *) op);
+    return ops[op->type].wait(op);
 }
 
-int ffop_test(ffop_h op){
+int ffop_test(ffop_h _op, int * flag){
+    ffop_t * op = (ffop_t *) _op;
 #ifdef ARGS_CHECK
     if (ops->type<0 || ops->type>FFMAX_IDX) return FFINVALID_ARG;
 #endif
-    return ops[op->type].test((ffop_t *) op);
+    return ops[op->type].test(op, flag);
 }
 
 
-int ffop_happens_before(ffop_h first, ffop_h second){
+int ffop_happens_before(ffop_h _first, ffop_h _second){
+    ffop_t * first = (ffop_t *) _first;
+    ffop_t * second = (ffop_t *) _second;
 #ifdef ARGS_CHECK
     if (first==NULL || second==NULL) return FFINVALID_ARG;
 #endif

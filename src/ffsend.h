@@ -1,14 +1,15 @@
 #ifndef _FFSEND_H_
 #define _FFSEND_H_
 
+#include "ffinternal.h"
+#include "ffop_mem.h"
+#include "mpi/ffop_mpi.h"
+
 typedef struct ffsend{    
     ffpeer_t peer;
     ffop_mem_t buffer;
     uint32_t tag;
     uint8_t flags;
-
-    /* for now we completely rely on MPI for the comm abstraction */
-    MPI_Comm mpicomm;
 
     /* transport */
 #ifdef FFOP_MPI
@@ -18,8 +19,6 @@ typedef struct ffsend{
 } ffsend_t;
 
 int ffsend_post(ffop_t * op, ffop_mem_set_t * mem);
-int ffsend_create(void * buffer, size_t size, int source, int tag, MPI_Comm comm int options, ffop_t * io);
-
-
+int ffsend_create(void * buffer, size_t size, int source, int tag, int options, ffop_t * io);
 
 #endif /* _FFSEND_H_ */

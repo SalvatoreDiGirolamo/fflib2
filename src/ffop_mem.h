@@ -1,6 +1,8 @@
 #ifndef _FFOP_MEM_H_
 #define _FFOP_MEM_H_
 
+#include "ffinternal.h"
+
 #define FFOP_MEM_PTR 0x2 
 #define FFOP_MEM_IDX 0x4
 
@@ -23,7 +25,7 @@ typedef struct ffop_mem{
 typedef struct ffop_mem_set{
     /* ugly */
     void * buffers[MAX_BUFFER_COUNT];
-    uint32_t lenght;
+    uint32_t length;
 
     struct ffmem_set * next;
 } ffop_mem_set_t;

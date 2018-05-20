@@ -1,13 +1,14 @@
 #ifndef _FFCOMP_H_
 #define _FFCOMP_H_
 
+#include "ffoperator.h"
 
 typedef struct ffcomp{
     ffop_mem_t buffer1;
     ffop_mem_t buffer2;
     uint32_t count;
-    size_t datatype_size;
-    ffoperator_internal_t op;
+    ffdatatype_t datatype;
+    ffoperator_t op;
     uint8_t flags;
 
 } ffcomp_t;

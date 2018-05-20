@@ -8,23 +8,14 @@
 #define FFCOMP 2
 #define FFMAX_IDX 3 /* not actual op, just boundary for ops indexes */
 
-typedef int (*ffop_post_t)(ffop_t*, ffop_mem_set_t*);
-typedef int (*ffop_wait_t)(ffop_t*);
-typedef int (*ffop_free_t)(ffop_t*);
-typedef int (*ffop_init_t)(ffop_t*);
-
-
-
-typedef ffop_descriptor{
-    ffop_init_t init;
-    ffop_post_t post;
-    ffop_free_t free;
-    ffop_test_t test;
-} ffop_descriptor_t;
+#include "ffinternal.h"
+#include "ffsend.h"
+#include "ffrecv.h"
+#include "ffcomp.h"
 
 typedef uint32_t ffop_type_t;
 
-typedef struct ffop{
+struct ffop{
     ffop_type_t type;
 
     /* actual operation */
@@ -46,11 +37,26 @@ typedef struct ffop{
     /* used in schedule_t for determining the next executable op */
     struct ffop * next;
 
+    /* flag that is set to true (!=0) if the op is completed */
+    uint8_t completed;
 
-} ffop_t;
+};
 
+typedef int (*ffop_post_t)(ffop_t*, ffop_mem_set_t*);
+typedef int (*ffop_wait_t)(ffop_t*);
+typedef int (*ffop_test_t)(ffop_t*, int*);
+typedef int (*ffop_init_t)(ffop_t*);
+
+typedef struct ffop_descriptor{
+    ffop_init_t init;
+    ffop_post_t post;
+    ffop_wait_t wait;
+    ffop_test_t test;
+} ffop_descriptor_t;
+
+
+extern ffop_descriptor_t ops[FFMAX_IDX];
 
 int ffop_init();
-
 
 #endif /* _FFOP_H_ */

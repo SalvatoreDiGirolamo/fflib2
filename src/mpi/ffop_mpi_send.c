@@ -1,29 +1,34 @@
 
+#include "ffop_mpi.h"
+#include "ffop_mpi_progresser.h"
+#include "../ffsend.h"
 
 int ffop_mpi_send_post(ffop_t * op, ffop_mem_set_t * mem){
     int res;
 
+    ffsend_t * send = &(op->send);
+
 #ifdef CHECK_ARGS
-    if (op==NULL) return FFINVALID_ARG;
+    if (op==NULL || op->type!=FFSEND) return FFINVALID_ARG;
     
-    if (op->buffer.type == FFOP_MEM_IDX && (mem==NULL ||
-            op->buffer.idx > mem->length)){
+    if (send->buffer.type == FFOP_MEM_IDX && (mem==NULL ||
+            send->buffer.idx > mem->length)){
         return FFINVALID_ARG;
     }
 #endif
 
     void * buffer;
-    if (op->buffer.type == FFOP_MEM_PTR){
-        buffer = op->buffer.ptr;
+    if (send->buffer.type == FFOP_MEM_PTR){
+        buffer = send->buffer.ptr;
     }else{
-        buffer = mem->buffers[op->buffer.idx];
+        buffer = mem->buffers[send->buffer.idx];
     }
 
-    res = MPI_ISend(buffer, op->size, MPI_CHAR, op->peer, op->tag, op->mpicomm, 
-        &(op->transport.mpireq));
+    res = MPI_ISend(buffer, send->buffer.size, MPI_CHAR, send->peer, send->tag, MPI_COMM_WORLD, 
+        &(send->transport.mpireq));
 
     if (res!=MPI_SUCCESS) return FFERROR;
-    return ffop_mpi_progresser_track(op);
+    return ffop_mpi_progresser_track(op, send->transport.mpireq);
 
 }
 

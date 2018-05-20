@@ -1,15 +1,20 @@
+#include "ffprogress.h"
+#include "ffinternal.h"
 
+#include "mpi/ffop_mpi_progresser.h"
 
-int progress_thread(){
+void * progress_thread(void * args){
+
+    ffdescr_t * ff = (ffdescr_t *) args;
 
     /* Initialize the progressers */
-    FFCALL(ffop_mpi_progresser_init());
+    FFCALLV(ffop_mpi_progresser_init(), NULL);
 
-    while (1){
+    while (!ff->terminate){
         ffop_t * completed = NULL;        
 
         /* Call the progressers */
-        FFCALL(ffop_mpi_progresser_progress(&completed));
+        FFCALLV(ffop_mpi_progresser_progress(&completed), NULL);
 
 
         /* Satisfy the dependencies */
@@ -29,7 +34,7 @@ int progress_thread(){
 
 
     /* Initialize the progressers */
-    FFCALL(ffop_mpi_progresser_finalize());
+    FFCALLV(ffop_mpi_progresser_finalize(), NULL);
 
-    return FFSUCCESS;
+    return NULL;
 }

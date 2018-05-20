@@ -1,15 +1,15 @@
 #ifndef _FFRECV_H_
 #define _FFRECV_H_
 
+#include "ffinternal.h"
+#include "ffop_mem.h"
+#include "mpi/ffop_mpi.h"
 
 typedef struct ffrecv{    
     ffpeer_t peer;
     ffop_mem_t buffer;
     uint32_t tag;
     uint8_t flags;
-
-    /* for now we completely rely on MPI for the comm abstraction */
-    MPI_Comm mpicomm;
 
     /* transport */
 #ifdef FFOP_MPI
