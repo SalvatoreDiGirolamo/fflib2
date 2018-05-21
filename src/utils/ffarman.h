@@ -19,8 +19,8 @@ typedef struct ffarman{
 
 
 int ffarman_create(uint32_t count, ffarman_t * array);
-int ffarman_free(ffarman_t array);
-uint32_t ffarman_get(ffarman_t array);
-int ffarman_put(ffarman_t array, uint32_t idx);
+int ffarman_free(ffarman_t * array);
+uint32_t ffarman_get(ffarman_t * array);
+int ffarman_put(ffarman_t * array, uint32_t idx);
 
 

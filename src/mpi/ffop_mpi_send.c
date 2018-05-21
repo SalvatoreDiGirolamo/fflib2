@@ -1,7 +1,7 @@
 
 #include "ffop_mpi.h"
 #include "ffop_mpi_progresser.h"
-#include "../ffsend.h"
+#include "ffsend.h"
 
 int ffop_mpi_send_post(ffop_t * op, ffop_mem_set_t * mem){
     int res;
@@ -9,10 +9,14 @@ int ffop_mpi_send_post(ffop_t * op, ffop_mem_set_t * mem){
     ffsend_t * send = &(op->send);
 
 #ifdef CHECK_ARGS
-    if (op==NULL || op->type!=FFSEND) return FFINVALID_ARG;
-    
+    if (op==NULL || op->type!=FFSEND) {
+        FFLOG_ERROR("Invalid argument!");
+        return FFINVALID_ARG;
+    }
+
     if (send->buffer.type == FFOP_MEM_IDX && (mem==NULL ||
             send->buffer.idx > mem->length)){
+        FFLOG_ERROR("Invalid argument!");
         return FFINVALID_ARG;
     }
 #endif
@@ -28,8 +32,11 @@ int ffop_mpi_send_post(ffop_t * op, ffop_mem_set_t * mem){
             datatype_translation_table[send->buffer.datatype], send->peer, 
             send->tag, MPI_COMM_WORLD, &(send->transport.mpireq));
 
-    if (res!=MPI_SUCCESS) return FFERROR;
-    return ffop_mpi_progresser_track(op, send->transport.mpireq);
+    if (res!=MPI_SUCCESS) {
+        FFLOG_ERROR("Error while creating the MPI_Isend!");
+        return FFERROR;
+    }
 
+    return ffop_mpi_progresser_track(op, send->transport.mpireq);
 }
 

@@ -1,3 +1,4 @@
+#include "ff.h"
 #include "ffprogress.h"
 #include "ffinternal.h"
 
@@ -7,8 +8,6 @@ void * progress_thread(void * args){
 
     ffdescr_t * ff = (ffdescr_t *) args;
 
-    /* Initialize the progressers */
-    FFCALLV(ffop_mpi_progresser_init(), NULL);
 
     while (!ff->terminate){
         ffop_t * completed = NULL;        
@@ -24,7 +23,7 @@ void * progress_thread(void * args){
 
                 uint32_t deps = __sync_add_and_fetch(&(dep_op->in_dep_count), -1);
                 if (deps==0){
-                    ffop_post(dep_op);
+                    ffop_post((ffop_h) dep_op);
                 }
             }
 

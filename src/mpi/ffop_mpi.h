@@ -3,8 +3,8 @@
 
 #include <mpi.h>
 
-#include "../ff.h"
-#include "../ffop_mem.h"
+#include "ff.h"
+#include "ffop_mem.h"
 
 typedef struct ffop ffop_t;
 

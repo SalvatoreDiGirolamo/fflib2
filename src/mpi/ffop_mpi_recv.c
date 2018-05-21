@@ -1,7 +1,7 @@
 
 #include "ffop_mpi.h"
 #include "ffop_mpi_progresser.h"
-#include "../ffrecv.h"
+#include "ffrecv.h"
 
 int ffop_mpi_recv_post(ffop_t * op, ffop_mem_set_t * mem){
     int res;

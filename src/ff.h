@@ -8,6 +8,7 @@
 #define FFENOMEM -4
 
 #include <stddef.h>
+#include <stdint.h>
 
 #define FFOP_MPI
 
@@ -19,7 +20,7 @@
 #define FFDATATYPE_SENTINEL 5
 
 typedef int ffdatatype_t;
-typedef void * ffop_h;
+typedef uint64_t ffop_h;
 
 int ffinit(int * argc, char *** argv);
 int fffinalize();
@@ -34,6 +35,8 @@ int ffop_happens_before(ffop_h first, ffop_h second);
 
 int ffsend(void * buffer, int count, ffdatatype_t datatype, int dest, int tag, int options, ffop_h * op);
 int ffrecv(void * buffer, int count, ffdatatype_t datatype, int source, int tag, int options, ffop_h * op);
+int ffop_free(ffop_h _op);
+
 
 
 #endif /* _FF_H_ */

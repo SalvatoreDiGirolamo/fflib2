@@ -1,6 +1,8 @@
 
-#include "../ff.h"
+#include "ff.h"
+#include "ffinternal.h"
 #include "ffmpi.h"
+#include "ffop_mpi_progresser.h"
 
 #include <mpi.h>
 
@@ -8,14 +10,21 @@ static int init_by_me = 0;
 
 int ffmpi_init(int * argc, char *** argv){
     int init;
+    int mt_level;
     MPI_Initialized(&init);
 
     if (!init){
         init_by_me = 1;
-        MPI_Init(argc, argv);
-    }
+        
+        MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &mt_level);
 
-    return FFSUCCESS;
+        if (mt_level!=MPI_THREAD_MULTIPLE){
+            FFLOG_ERROR("No MPI_THREAD_MULTIPLE available!\n");
+            return FFERROR;
+        }
+    }
+    
+    return ffop_mpi_progresser_init();
 }
 
 int ffmpi_finalize(){

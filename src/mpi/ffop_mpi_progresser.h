@@ -2,7 +2,7 @@
 #define _FFOP_MPI_PROGRESSER_H_
 
 #include "ffop_mpi.h"
-#include "../ffop.h"
+#include "ffop.h"
 
 int ffop_mpi_progresser_init();
 int ffop_mpi_progresser_finalize();

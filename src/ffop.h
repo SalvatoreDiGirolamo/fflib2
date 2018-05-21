@@ -42,6 +42,9 @@ struct ffop{
     /* flag that is set to true (!=0) if the op is completed */
     volatile uint8_t completed;
 
+    /* flag that is set to true (!=0) if the op has been posted */
+    volatile uint8_t posted;
+
 };
 
 typedef int (*ffop_post_t)(ffop_t*, ffop_mem_set_t*);
@@ -56,5 +59,7 @@ typedef struct ffop_descriptor{
 extern ffop_descriptor_t ops[FFMAX_IDX];
 
 int ffop_init();
+int ffop_finalize();
+int ffop_create(ffop_t ** ptr);
 
 #endif /* _FFOP_H_ */

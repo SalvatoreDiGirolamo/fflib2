@@ -23,6 +23,7 @@ typedef int (*ffimpl_get_size_t)(int*);
 
 typedef struct ff_descr{
     volatile int terminate;
+    volatile int progress_thread_ready;
     pthread_t progress_thread;
 
     ffimpl_init_t impl_init;

@@ -1,6 +1,8 @@
 #ifndef _FFSTORAGE_H_
 #define _FFSTORAGE_H_
 
+#include "ffinternal.h"
+
 /* to avoid using another hashtable here*/
 #define MAX_POOLS 128
 
@@ -8,25 +10,31 @@ typedef uint32_t pool_h;
 
 
 typedef struct ffmem_block{
-    void * address; /* DON'T MOVE THIS (see ffstorage_pool_put)! */
     size_t size;
     uint32_t poolid;
+    uint32_t id;
 
     /* used when the block is free */
     struct ffmem_block * next;
 } ffmem_block_t;
 
 typedef struct ffpool{
-    ff_mem_block_t * head;
+    ffmem_block_t * head;
+    ffmem_block_t * tofree;
     uint32_t pool_size;
     uint32_t curr_size;
+    size_t elem_size;
 } ffpool_t;
 
 
-pool_t ffstorage_pool_create(size_t elem_size, uint32_t initial_count);
+pool_h ffstorage_pool_create(size_t elem_size, uint32_t initial_count);
+int ffstorage_pool_destroy(pool_h poolid);
 
 int ffstorage_pool_get(pool_h pool, void ** ptr);
 int ffstorage_pool_put(void * ptr);
 
+
+int ffstorage_init();
+int ffstorage_finalize();
 
 #endif /* _FFSTORAGE_H */

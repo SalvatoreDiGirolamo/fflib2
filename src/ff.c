@@ -1,6 +1,7 @@
 
 #include "ff.h"
 #include "ffop.h"
+#include "ffstorage.h"
 #include "ffprogress.h"
 #include "ffinternal.h"
 
@@ -12,17 +13,19 @@ int ffinit(int * argc, char *** argv){
 
     int ret; 
 
-    ffop_init();
-    ff.terminate = 0;
-    ret = pthread_create(&(ff.progress_thread), NULL, progress_thread, &ff);
-    if (ret){ return FFERROR; }
-
     ff.impl_init = ffmpi_init;
     ff.impl_finalize = ffmpi_finalize;
     ff.impl_get_rank = ffmpi_get_rank;
     ff.impl_get_size = ffmpi_get_size;
 
+    ffstorage_init();
+    ffop_init();
+
     ff.impl_init(argc, argv);
+
+    ff.terminate = 0;
+    ret = pthread_create(&(ff.progress_thread), NULL, progress_thread, &ff);
+    if (ret){ return FFERROR; }
 
     return FFSUCCESS;
 }
@@ -35,7 +38,10 @@ int fffinalize(){
         return FFERROR;
     }
  
-    ff.impl_finalize();   
+    ff.impl_finalize(); 
+    ffop_finalize();
+    ffstorage_finalize();
+  
     return FFSUCCESS;
 }
 
