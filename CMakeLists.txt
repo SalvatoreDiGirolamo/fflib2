@@ -3,7 +3,10 @@ project(fflib VERSION 2.0.0 DESCRIPTION "fflib 2.0")
 include(GNUInstallDirs)
 
 find_package(MPI REQUIRED)
-include_directories(${MPI_INCLUDE_PATH})
+include_directories(
+  ${MPI_INCLUDE_PATH} 
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
 add_library(fflib SHARED 
 src/ff.c
@@ -50,3 +53,9 @@ install(TARGETS fflib
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(FILES ${CMAKE_BINARY_DIR}/fflib.pc
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+
+#--------------------------------------------------
+# Tests
+#--------------------------------------------------
+add_subdirectory(test)
+
