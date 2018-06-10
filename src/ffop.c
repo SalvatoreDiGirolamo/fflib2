@@ -10,17 +10,12 @@
 
 #define INITIAL_FFOP_POOL_COUNT 1024
 
-ffop_descriptor_t ops[FFMAX_IDX];
 pool_h op_pool;
 
 int ffop_init(){
 
     /* the MPI backend doesn't do anything in the init, so we use a common
        init function. */
-
-    ff.impl.register_op(FFSEND, &ops[FFSEND]);
-    ff.impl.register_op(FFRECV, &ops[FFRECV]);
-    ff.impl.register_op(FFCOMP, &ops[FFCOMP]);
 
     op_pool = ffstorage_pool_create(sizeof(ffop_t), INITIAL_FFOP_POOL_COUNT);
 
@@ -41,10 +36,10 @@ int ffop_post(ffop_h _op){
     int res;
     ffop_t * op = (ffop_t *) _op;
 #ifdef ARGS_CHECK
-    if (ops->type<0 || ops->type>FFMAX_IDX) return FFINVALID_ARG;
+    if (op->type<0 || op->type>FFMAX_IDX) return FFINVALID_ARG;
 #endif
     op->posted=1;
-    res = ops[op->type].post(op, NULL);
+    res = ff.impl.ops[op->type].post(op, NULL);
 
     /* check if the operation has been immediately completed */
     if (op->completed){ ffop_complete(op); }

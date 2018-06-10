@@ -11,6 +11,26 @@
 
 static int init_by_me = 0;
 
+int ffmpi_bind(ffdescr_t * ffdescr){
+
+    ffdescr->impl.init = ffmpi_init;
+    ffdescr->impl.finalize = ffmpi_finalize;
+    ffdescr->impl.get_rank = ffmpi_get_rank;
+    ffdescr->impl.get_size = ffmpi_get_size;
+    ffdescr->impl.register_op = ffmpi_register_op;
+
+    ffdescr->impl.ops[FFSEND].init = ffop_mpi_init;
+    ffdescr->impl.ops[FFSEND].post = ffop_mpi_send_post;
+
+    ffdescr->impl.ops[FFRECV].init = ffop_mpi_init;
+    ffdescr->impl.ops[FFRECV].post = ffop_mpi_recv_post;
+
+    ffdescr->impl.ops[FFCOMP].init = ffop_gcomp_init;
+    ffdescr->impl.ops[FFCOMP].post = ffop_gcomp_post;
+
+    return FFSUCCESS;
+}
+
 int ffmpi_init(int * argc, char *** argv){
     int init;
     int mt_level;

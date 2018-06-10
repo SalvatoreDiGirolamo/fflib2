@@ -3,11 +3,6 @@
 
 #define MAX_DEPS 10
 
-#define FFSEND 0
-#define FFRECV 1
-#define FFCOMP 2
-#define FFMAX_IDX 3 /* not actual op, just boundary for ops indexes */
-
 #define FFPOLLS_BEFORE_YIELD 1000
 
 #define FFOP_ENQUEUE(op, oplist) { \
@@ -20,12 +15,10 @@
 } 
 
 
-#include "ffinternal.h"
+//#include "ffinternal.h"
 #include "ffsend.h"
 #include "ffrecv.h"
 #include "ffcomp.h"
-
-
 
 typedef uint32_t ffop_type_t;
 
@@ -58,17 +51,6 @@ struct ffop{
     volatile uint8_t posted;
 
 };
-
-typedef int (*ffop_post_t)(ffop_t*, ffop_mem_set_t*);
-typedef int (*ffop_init_t)(ffop_t*);
-
-typedef struct ffop_descriptor{
-    ffop_init_t init;
-    ffop_post_t post;
-} ffop_descriptor_t;
-
-
-extern ffop_descriptor_t ops[FFMAX_IDX];
 
 int ffop_init();
 int ffop_finalize();

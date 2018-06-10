@@ -1,6 +1,10 @@
 #ifndef _FFMPI_H_
 #define _FFMPI_H_
 
+#include "ffinternal.h"
+
+int ffmpi_bind(ffdescr_t * descr);
+
 int ffmpi_init(int * argc, char *** argv);
 int ffmpi_finalize();
 

@@ -26,7 +26,7 @@ int ffrecv(void * buffer, int count, ffdatatype_h datatype, int source, int tag,
     }
  
     /* implementation specific */   
-    res = ops[FFRECV].init(op);
+    res = ff.impl.ops[FFRECV].init(op);
 
     return res;
 }

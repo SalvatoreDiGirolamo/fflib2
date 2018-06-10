@@ -26,7 +26,7 @@ int ffsend(void * buffer, int count, ffdatatype_h datatype, int source, int tag,
     }
 
     /* implementation specific */
-    res = ops[FFSEND].init(op);
+    res = ff.impl.ops[FFSEND].init(op);
     
     return res;
 }

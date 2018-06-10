@@ -23,10 +23,16 @@ static int dbg_myrank;
 #define MIN(a, b, c) (((a<b ? a : b) < c) ? (a<b ? a : b) : c)
 
 
+#define FFSEND 0
+#define FFRECV 1
+#define FFCOMP 2
+#define FFMAX_IDX 3 /* not actual op, just boundary for ops indexes */
+
 typedef int ffdatatype_t; /* for now the internal datatype type is an int as well */
 typedef uint32_t ffpeer_t;
 typedef struct ffop ffop_t;
 typedef struct ffop_descriptor ffop_descriptor_t;
+typedef struct ffop_mem_set ffop_mem_set_t;
 
 typedef int (*ffimpl_init_t)(int*, char ***);
 typedef int (*ffimpl_finalize_t)();
@@ -34,7 +40,17 @@ typedef int (*ffimpl_get_rank_t)(int*);
 typedef int (*ffimpl_get_size_t)(int*);
 typedef int (*ffimpl_register_op_t)(int, ffop_descriptor_t*);
 
+/* Operation descriptor */
+typedef int (*ffop_post_t)(ffop_t*, ffop_mem_set_t*);
+typedef int (*ffop_init_t)(ffop_t*);
 
+typedef struct ffop_descriptor{
+    ffop_init_t init;
+    ffop_post_t post;
+} ffop_descriptor_t;
+
+
+/* FF descriptor */
 typedef struct ff_descr{
     volatile int terminate;
     volatile int progress_thread_ready;
@@ -46,6 +62,7 @@ typedef struct ff_descr{
         ffimpl_get_rank_t get_rank;
         ffimpl_get_size_t get_size;
         ffimpl_register_op_t register_op; 
+        ffop_descriptor_t ops[FFMAX_IDX];
     } impl;
 } ffdescr_t;
 

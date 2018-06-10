@@ -17,12 +17,8 @@ ffdescr_t ff;
 int ffinit(int * argc, char *** argv){
 
     int ret; 
-
-    ff.impl.init = ffmpi_init;
-    ff.impl.finalize = ffmpi_finalize;
-    ff.impl.get_rank = ffmpi_get_rank;
-    ff.impl.get_size = ffmpi_get_size;
-    ff.impl.register_op = ffmpi_register_op;
+    
+    ffmpi_bind(&ff);
 
     ffstorage_init();
     ffop_init();
