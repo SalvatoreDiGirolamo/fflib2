@@ -7,13 +7,12 @@
 
 #define FFCUSTOM_OP_MAX 16
 
-typedef int (*gcomp_fun_t)(void*, void*, void*, uint32_t, ffdatatype_h);
 
 typedef struct ffop_gcomp_operator{
     uint32_t type;
     int commutative;
     int idx;
-    gcomp_fun_t op_fun;
+    ffoperator_fun_t op_fun;
 } ffop_gcomp_operator_t;
 
 int ffop_gcomp_operator_init();

@@ -34,11 +34,13 @@ typedef struct ffop ffop_t;
 typedef struct ffop_descriptor ffop_descriptor_t;
 typedef struct ffop_mem_set ffop_mem_set_t;
 
-typedef int (*ffimpl_init_t)(int*, char ***);
+typedef int (*ffimpl_init_t)(int*, char***);
 typedef int (*ffimpl_finalize_t)();
 typedef int (*ffimpl_get_rank_t)(int*);
 typedef int (*ffimpl_get_size_t)(int*);
-typedef int (*ffimpl_register_op_t)(int, ffop_descriptor_t*);
+typedef int (*ffimpl_operator_create_t)(ffoperator_fun_t, int, ffoperator_h*);
+typedef int (*ffimpl_operator_delete_t)(ffoperator_h);
+
 
 /* Operation descriptor */
 typedef int (*ffop_post_t)(ffop_t*, ffop_mem_set_t*);
@@ -61,7 +63,8 @@ typedef struct ff_descr{
         ffimpl_finalize_t finalize;
         ffimpl_get_rank_t get_rank;
         ffimpl_get_size_t get_size;
-        ffimpl_register_op_t register_op; 
+        ffimpl_operator_create_t operator_create;
+        ffimpl_operator_delete_t operator_delete;
         ffop_descriptor_t ops[FFMAX_IDX];
     } impl;
 } ffdescr_t;

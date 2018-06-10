@@ -45,16 +45,18 @@ int ffop_post(ffop_h op);
 int ffop_wait(ffop_h op);
 int ffop_test(ffop_h op, int * flag);
 int ffop_hb(ffop_h first, ffop_h second);
+int ffop_free(ffop_h _op);
 
 int ffsend(void * buffer, int count, ffdatatype_h datatype, int dest, int tag, int options, ffop_h * op);
 int ffrecv(void * buffer, int count, ffdatatype_h datatype, int source, int tag, int options, ffop_h * op);
 
-//int ffoperator_custom_create(ffoperator_fun_t fun, int commutative, ffoperator_h * handle);
-//int ffoperator_custom_delete(ffoperator_h handle);
 
+typedef int (*ffoperator_fun_t)(void*, void*, void*, uint32_t, ffdatatype_h);
 int ffcomp(void * buff1, void * buff2, int count, ffdatatype_h datatype, ffoperator_h ffoperator, int options, void * buff3, ffop_h * op);
+int ffcomp_operator_create(ffoperator_fun_t fun, int commutative, ffoperator_h * handle);
+int ffcomp_operator_delete(ffoperator_h handle);
 
-int ffop_free(ffop_h _op);
+
 
 
 #endif /* _FF_H_ */

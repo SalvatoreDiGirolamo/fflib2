@@ -17,7 +17,6 @@ int ffmpi_bind(ffdescr_t * ffdescr){
     ffdescr->impl.finalize = ffmpi_finalize;
     ffdescr->impl.get_rank = ffmpi_get_rank;
     ffdescr->impl.get_size = ffmpi_get_size;
-    ffdescr->impl.register_op = ffmpi_register_op;
 
     ffdescr->impl.ops[FFSEND].init = ffop_mpi_init;
     ffdescr->impl.ops[FFSEND].post = ffop_mpi_send_post;
@@ -27,6 +26,8 @@ int ffmpi_bind(ffdescr_t * ffdescr){
 
     ffdescr->impl.ops[FFCOMP].init = ffop_gcomp_init;
     ffdescr->impl.ops[FFCOMP].post = ffop_gcomp_post;
+
+    BIND CUSTOM OP HERE
 
     return FFSUCCESS;
 }
@@ -51,21 +52,6 @@ int ffmpi_init(int * argc, char *** argv){
     ffgcomp_init();
    
     return FFSUCCESS; 
-}
-
-int ffmpi_register_op(int op, ffop_descriptor_t * descr){
-    if (op==FFSEND){
-        descr->init = ffop_mpi_init;
-        descr->post = ffop_mpi_send_post;
-    }else if (op==FFRECV){
-        descr->init = ffop_mpi_init;
-        descr->post = ffop_mpi_recv_post;
-    }else if (op==FFCOMP){
-        descr->init = ffop_gcomp_init;
-        descr->post = ffop_gcomp_post;
-    }else return FFINVALID_ARG;
-    
-    return FFSUCCESS;
 }
 
 int ffmpi_finalize(){
