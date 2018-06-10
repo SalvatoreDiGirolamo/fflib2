@@ -4,6 +4,12 @@
 #include "ffop.h"
 #include "mpi/ffop_mpi_progresser.h"
 
+volatile int _progresser_ready = 0;
+
+int progresser_ready(){
+    return _progresser_ready;
+}
+
 void * progress_thread(void * args){
 
     ffdescr_t * ff = (ffdescr_t *) args;
@@ -11,6 +17,7 @@ void * progress_thread(void * args){
     /* Initialize the progresses */
     ffop_mpi_progresser_init();
 
+    _progresser_ready = 1;
     while (!ff->terminate){
         ffop_t * completed = NULL;        
 

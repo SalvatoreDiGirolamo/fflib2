@@ -32,6 +32,7 @@ int ffinit(int * argc, char *** argv){
     ff.terminate = 0;
     ret = pthread_create(&(ff.progress_thread), NULL, progress_thread, &ff);
     if (ret){ return FFERROR; }
+    while (!progresser_ready());
 
 #ifdef FFDEBUG
     ffrank(&dbg_myrank);
