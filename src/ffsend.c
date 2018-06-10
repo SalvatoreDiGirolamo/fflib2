@@ -1,9 +1,10 @@
 #include "ffsend.h"
 #include "ffop.h"
 
-int ffsend(void * buffer, int count, ffdatatype_t datatype, int source, int tag, 
+int ffsend(void * buffer, int count, ffdatatype_h datatype, int source, int tag, 
     int options, ffop_h * _op){
-    
+ 
+    int res;   
     ffop_t * op;
     ffop_create(&op);
     *_op = (ffop_h) op;
@@ -25,9 +26,9 @@ int ffsend(void * buffer, int count, ffdatatype_t datatype, int source, int tag,
     }
 
     /* implementation specific */
-    ops[FFSEND].init(op);
+    res = ops[FFSEND].init(op);
     
-    return FFSUCCESS;
+    return res;
 }
 
 

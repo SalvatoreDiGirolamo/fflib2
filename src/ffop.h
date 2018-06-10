@@ -10,10 +10,22 @@
 
 #define FFPOLLS_BEFORE_YIELD 1000
 
+#define FFOP_ENQUEUE(op, oplist) { \
+    op->next = *oplist; \
+    *oplist = op; \
+}
+
+#define FFOP_COMPLETED(op){ \
+    __sync_add_and_fetch(&(op->completed), 1); \
+} 
+
+
 #include "ffinternal.h"
 #include "ffsend.h"
 #include "ffrecv.h"
 #include "ffcomp.h"
+
+
 
 typedef uint32_t ffop_type_t;
 
@@ -61,5 +73,6 @@ extern ffop_descriptor_t ops[FFMAX_IDX];
 int ffop_init();
 int ffop_finalize();
 int ffop_create(ffop_t ** ptr);
+int ffop_complete(ffop_t * op);
 
 #endif /* _FFOP_H_ */

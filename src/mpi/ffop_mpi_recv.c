@@ -11,18 +11,12 @@ int ffop_mpi_recv_post(ffop_t * op, ffop_mem_set_t * mem){
 #ifdef CHECK_ARGS
     if (op==NULL || op!=FFRECV) return FFINVALID_ARG;
     
-    if (recv->buffer.type == FFOP_MEM_IDX && (mem==NULL ||
-            recv->buffer.idx > mem->length)){
-        return FFINVALID_ARG;
-    }
+    CHECKBUFFER(recv->buffer, mem); 
+   
 #endif
 
     void * buffer;
-    if (recv->buffer.type == FFOP_MEM_PTR){
-        buffer = recv->buffer.ptr;
-    }else{
-        buffer = mem->buffers[recv->buffer.idx];
-    }
+    GETBUFFER(recv->buffer, mem, buffer);
 
     res = MPI_Irecv(buffer, recv->buffer.count, 
             datatype_translation_table[recv->buffer.datatype], recv->peer, 

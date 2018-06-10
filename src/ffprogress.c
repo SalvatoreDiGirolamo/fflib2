@@ -1,38 +1,35 @@
 #include "ff.h"
 #include "ffprogress.h"
 #include "ffinternal.h"
-
+#include "ffop.h"
 #include "mpi/ffop_mpi_progresser.h"
 
 void * progress_thread(void * args){
 
     ffdescr_t * ff = (ffdescr_t *) args;
 
+    /* Initialize the progresses */
+    ffop_mpi_progresser_init();
 
     while (!ff->terminate){
         ffop_t * completed = NULL;        
 
         /* Call the progressers */
+        
+        //MPI
         FFCALLV(ffop_mpi_progresser_progress(&completed), NULL);
 
+        //Others...
+    
 
         /* Satisfy the dependencies */
-        while (completed!=NULL){            
-            for (int i=0; i<completed->out_dep_count; i++){
-                ffop_t * dep_op = completed->dependent[i];
-
-                uint32_t deps = __sync_add_and_fetch(&(dep_op->in_dep_count), -1);
-                if (deps==0){
-                    ffop_post((ffop_h) dep_op);
-                }
-            }
-
+        while (completed!=NULL){ 
+            ffop_complete(completed);
             completed = completed->next;
         }
     }       
 
-
-    /* Initialize the progressers */
+    /* Finalize the progressers */
     FFCALLV(ffop_mpi_progresser_finalize(), NULL);
 
     return NULL;

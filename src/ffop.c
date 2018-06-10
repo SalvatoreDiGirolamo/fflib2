@@ -15,11 +15,12 @@ pool_h op_pool;
 
 int ffop_init(){
 
-    ops[FFSEND].init = ffop_mpi_init;
-    ops[FFSEND].post = ffop_mpi_send_post;
+    /* the MPI backend doesn't do anything in the init, so we use a common
+       init function. */
 
-    ops[FFRECV].init = ffop_mpi_init;
-    ops[FFRECV].post = ffop_mpi_recv_post;
+    ff.impl.register_op(FFSEND, &ops[FFSEND]);
+    ff.impl.register_op(FFRECV, &ops[FFRECV]);
+    ff.impl.register_op(FFCOMP, &ops[FFCOMP]);
 
     op_pool = ffstorage_pool_create(sizeof(ffop_t), INITIAL_FFOP_POOL_COUNT);
 
@@ -37,19 +38,25 @@ int ffop_free(ffop_h _op){
 }
 
 int ffop_post(ffop_h _op){
+    int res;
     ffop_t * op = (ffop_t *) _op;
 #ifdef ARGS_CHECK
     if (ops->type<0 || ops->type>FFMAX_IDX) return FFINVALID_ARG;
 #endif
     op->posted=1;
-    return ops[op->type].post(op, NULL);
+    res = ops[op->type].post(op, NULL);
+
+    /* check if the operation has been immediately completed */
+    if (op->completed){ ffop_complete(op); }
+    
+    return res;
 }
 
 int ffop_wait(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
 
-    if (!op->posted){
-        FFLOG_ERROR("Waiting on an op that has not been posted!");
+    if (!op->posted && op->in_dep_count==0){
+        FFLOG_ERROR("Waiting on an independent op that has not been posted!");
         return FFINVALID_ARG;
     }
 
@@ -69,8 +76,8 @@ int ffop_wait(ffop_h _op){
 int ffop_test(ffop_h _op, int * flag){
     ffop_t * op = (ffop_t *) _op;
     
-    if (!op->posted){
-        FFLOG_ERROR("Testing an op that has not been posted!");
+    if (!op->posted && op->in_dep_count==0){
+        FFLOG_ERROR("Testing an independent op that has not been posted!");
         return FFINVALID_ARG;
     }
 
@@ -78,7 +85,7 @@ int ffop_test(ffop_h _op, int * flag){
 }
 
 
-int ffop_happens_before(ffop_h _first, ffop_h _second){
+int ffop_hb(ffop_h _first, ffop_h _second){
     ffop_t * first = (ffop_t *) _first;
     ffop_t * second = (ffop_t *) _second;
 #ifdef ARGS_CHECK
@@ -114,3 +121,16 @@ int ffop_create(ffop_t ** ptr){
     return FFSUCCESS;
 }
 
+int ffop_complete(ffop_t * op){
+    for (int i=0; i<op->out_dep_count; i++){
+        ffop_t * dep_op = op->dependent[i];
+
+        uint32_t deps = __sync_add_and_fetch(&(dep_op->in_dep_count), -1);
+        FFLOG("Decreasing %p dependencies by one: now %i\n", dep_op, dep_op->in_dep_count);
+        if (deps==0){
+            FFLOG("All dependencies of %p are satisfied: posting it!\n", dep_op);
+            ffop_post((ffop_h) dep_op);
+        }
+    }
+    return FFSUCCESS;
+}

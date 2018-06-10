@@ -4,6 +4,9 @@
 #include "ffmpi.h"
 #include "ffop_mpi_progresser.h"
 
+#include "common/gcomp/ffgcomp.h"
+#include "common/gcomp/ffop_gcomp.h"
+
 #include <mpi.h>
 
 static int init_by_me = 0;
@@ -23,20 +26,41 @@ int ffmpi_init(int * argc, char *** argv){
             return FFERROR;
         }
     }
+ 
+    //initialize the generic computation (gcomp) component 
+    ffgcomp_init();
+   
+    return FFSUCCESS; 
+}
+
+int ffmpi_register_op(int op, ffop_descriptor_t * descr){
+    if (op==FFSEND){
+        descr->init = ffop_mpi_init;
+        descr->post = ffop_mpi_send_post;
+    }else if (op==FFRECV){
+        descr->init = ffop_mpi_init;
+        descr->post = ffop_mpi_recv_post;
+    }else if (op==FFCOMP){
+        descr->init = ffop_gcomp_init;
+        descr->post = ffop_gcomp_post;
+    }else return FFINVALID_ARG;
     
-    return ffop_mpi_progresser_init();
+    return FFSUCCESS;
 }
 
 int ffmpi_finalize(){
     if (init_by_me) MPI_Finalize();
+    ffgcomp_finalize();
     return FFSUCCESS;
 }
 
 int ffmpi_get_rank(int * rank){
     MPI_Comm_rank(MPI_COMM_WORLD, rank);
+    return FFSUCCESS;
 }
 
 int ffmpi_get_size(int * size){
     MPI_Comm_size(MPI_COMM_WORLD, size);
+    return FFSUCCESS;
 }
 

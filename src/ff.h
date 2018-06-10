@@ -12,6 +12,7 @@
 
 #define FFOP_MPI
 
+/* datatypes */
 #define FFINT32 0
 #define FFINT64 1
 #define FFDOUBLE 2
@@ -19,7 +20,19 @@
 #define FFCHAR 4
 #define FFDATATYPE_SENTINEL 5
 
-typedef int ffdatatype_t;
+
+/* operators */
+#define FFSUM    0
+#define FFPROD   1
+#define FFMAX    2
+#define FFMIN    3
+#define FFOPERATOR_SENTINEL 4
+
+/* Our NULL */
+#define FFNONE -1
+
+typedef int ffdatatype_h;
+typedef int ffoperator_h;
 typedef uint64_t ffop_h;
 
 int ffinit(int * argc, char *** argv);
@@ -31,12 +44,17 @@ int ffsize(int * size);
 int ffop_post(ffop_h op);
 int ffop_wait(ffop_h op);
 int ffop_test(ffop_h op, int * flag);
-int ffop_happens_before(ffop_h first, ffop_h second);
+int ffop_hb(ffop_h first, ffop_h second);
 
-int ffsend(void * buffer, int count, ffdatatype_t datatype, int dest, int tag, int options, ffop_h * op);
-int ffrecv(void * buffer, int count, ffdatatype_t datatype, int source, int tag, int options, ffop_h * op);
+int ffsend(void * buffer, int count, ffdatatype_h datatype, int dest, int tag, int options, ffop_h * op);
+int ffrecv(void * buffer, int count, ffdatatype_h datatype, int source, int tag, int options, ffop_h * op);
+
+//int ffoperator_custom_create(ffoperator_fun_t fun, int commutative, ffoperator_h * handle);
+//int ffoperator_custom_delete(ffoperator_h handle);
+
+int ffcomp(void * buff1, void * buff2, int count, ffdatatype_h datatype, ffoperator_h ffoperator, int options, void * buff3, ffop_h * op);
+
 int ffop_free(ffop_h _op);
-
 
 
 #endif /* _FF_H_ */

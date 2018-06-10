@@ -14,19 +14,12 @@ int ffop_mpi_send_post(ffop_t * op, ffop_mem_set_t * mem){
         return FFINVALID_ARG;
     }
 
-    if (send->buffer.type == FFOP_MEM_IDX && (mem==NULL ||
-            send->buffer.idx > mem->length)){
-        FFLOG_ERROR("Invalid argument!");
-        return FFINVALID_ARG;
-    }
+    CHECKBUFFER(send->buffer, mem);
+
 #endif
 
     void * buffer;
-    if (send->buffer.type == FFOP_MEM_PTR){
-        buffer = send->buffer.ptr;
-    }else{
-        buffer = mem->buffers[send->buffer.idx];
-    }
+    GETBUFFER(send->buffer, mem, buffer)
 
     res = MPI_Isend(buffer, send->buffer.count, 
             datatype_translation_table[send->buffer.datatype], send->peer, 

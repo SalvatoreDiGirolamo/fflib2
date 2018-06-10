@@ -9,6 +9,23 @@
 
 #define MAX_BUFFER_COUNT 3
 
+#define CHECKBUFFER(BUFFDESCR, MEM) { \
+    if (BUFFDESCR.type == FFOP_MEM_IDX && (mem==NULL || \
+            BUFFDESCR.idx > MEM->length)){ \
+        FFLOG_ERROR("Invalid argument!"); \
+        return FFINVALID_ARG; \
+    } \
+}
+
+#define GETBUFFER(BUFFDESCR, MEM, BUFF) { \
+    if (BUFFDESCR.type == FFOP_MEM_PTR){ \
+        BUFF = BUFFDESCR.ptr; \
+    }else{ \
+        BUFF = MEM->buffers[BUFFDESCR.idx]; \
+    } \
+}
+
+
 typedef uint32_t ffop_mem_type_t;
 
 typedef struct ffop_mem{

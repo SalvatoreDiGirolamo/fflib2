@@ -15,9 +15,10 @@ src/ffdatatype.h
 src/ff.h
 src/ffinternal.h
 src/ffop.c
-src/ffoperator.h
 src/ffop.h
 src/ffop_mem.h
+src/ffcomp.c
+src/ffcomp.h
 src/ffprogress.c
 src/ffprogress.h
 src/ffrecv.c
@@ -38,6 +39,12 @@ src/mpi/ffop_mpi_recv.c
 src/mpi/ffop_mpi_send.c
 src/utils/ffarman.c
 src/utils/ffarman.h
+src/common/gcomp/ffgcomp.c
+src/common/gcomp/ffgcomp.h
+src/common/gcomp/ffop_gcomp.c
+src/common/gcomp/ffop_gcomp.h
+src/common/gcomp/ffop_gcomp_operator.c
+src/common/gcomp/ffop_gcomp_operator.h
 )
 set_target_properties(fflib PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -47,6 +54,7 @@ configure_file(fflib.pc.in fflib.pc @ONLY)
 target_include_directories(fflib PRIVATE src)
 target_link_libraries(fflib ${MPI_LIBRARIES})
 
+set(CMAKE_C_FLAGS_DEBUG "-DFFDEBUG -g")
 
 install(TARGETS fflib
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

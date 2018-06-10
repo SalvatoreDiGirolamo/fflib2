@@ -7,25 +7,37 @@
 
 #include "mpi/ffmpi.h"
 
-static ffdescr_t ff;
+#ifdef FFDEBUG
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
+ffdescr_t ff;
 
 int ffinit(int * argc, char *** argv){
 
     int ret; 
 
-    ff.impl_init = ffmpi_init;
-    ff.impl_finalize = ffmpi_finalize;
-    ff.impl_get_rank = ffmpi_get_rank;
-    ff.impl_get_size = ffmpi_get_size;
+    ff.impl.init = ffmpi_init;
+    ff.impl.finalize = ffmpi_finalize;
+    ff.impl.get_rank = ffmpi_get_rank;
+    ff.impl.get_size = ffmpi_get_size;
+    ff.impl.register_op = ffmpi_register_op;
 
     ffstorage_init();
     ffop_init();
 
-    ff.impl_init(argc, argv);
+    ff.impl.init(argc, argv);
 
     ff.terminate = 0;
     ret = pthread_create(&(ff.progress_thread), NULL, progress_thread, &ff);
     if (ret){ return FFERROR; }
+
+#ifdef FFDEBUG
+    ffrank(&dbg_myrank);
+#endif
+
+    FFLOG("Init: %i ==> PID %u\n", dbg_myrank, getpid());
 
     return FFSUCCESS;
 }
@@ -38,7 +50,7 @@ int fffinalize(){
         return FFERROR;
     }
  
-    ff.impl_finalize(); 
+    ff.impl.finalize(); 
     ffop_finalize();
     ffstorage_finalize();
   
@@ -46,10 +58,10 @@ int fffinalize(){
 }
 
 int ffrank(int * rank){
-    return ff.impl_get_rank(rank);
+    return ff.impl.get_rank(rank);
 }
 
 int ffsize(int * size){
-    return ff.impl_get_size(size);
+    return ff.impl.get_size(size);
 }
 

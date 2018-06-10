@@ -70,11 +70,10 @@ int ffop_mpi_progresser_progress(ffop_t ** ready_list){
     
     for (int i=0; i<outcount; i++){
         ffop_t * readyop = posted_ops[ready_indices[i]];
-        readyop->next = *ready_list;
-        *ready_list = readyop;
-    
+
         /* mark the operation as complete */ 
-        __sync_add_and_fetch(&(readyop->completed), 1);
+        FFOP_COMPLETED(readyop);
+        FFOP_ENQUEUE(readyop, ready_list);
 
         ffop_mpi_progresser_release(ready_indices[i]);
     }
