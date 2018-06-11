@@ -27,7 +27,8 @@ int ffmpi_bind(ffdescr_t * ffdescr){
     ffdescr->impl.ops[FFCOMP].init = ffop_gcomp_init;
     ffdescr->impl.ops[FFCOMP].post = ffop_gcomp_post;
 
-    BIND CUSTOM OP HERE
+    ffdescr->impl.operator_create = ffop_gcomp_operator_custom_create;
+    ffdescr->impl.operator_delete = ffop_gcomp_operator_custom_delete;
 
     return FFSUCCESS;
 }

@@ -27,6 +27,8 @@
 #define FFMAX    2
 #define FFMIN    3
 #define FFOPERATOR_SENTINEL 4
+#define FFCUSTOM 5
+
 
 /* Our NULL */
 #define FFNONE -1

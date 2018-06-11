@@ -7,6 +7,8 @@
         for (uint32_t i = 0; i<SIZE; i++){ ((TYPE *)C)[i] = ((TYPE *)A)[i] + ((TYPE *)B)[i]; }
 
 static ffop_gcomp_operator_t operators[FFOPERATOR_SENTINEL];
+static ffop_gcomp_operator_t custom_operators[FFMAX_CUSTOM_OPERATORS];
+static ffarman_t custom_idx;
 
 int ffop_gcomp_operator_sum(void * a, void * b, void* c, uint32_t size, ffdatatype_h type){
 
@@ -37,7 +39,11 @@ int ffop_gcomp_operator_init(){
     operators[FFSUM].commutative = 1;
     operators[FFSUM].idx = FFSUM;
     operators[FFSUM].op_fun = ffop_gcomp_operator_sum;
-   
+
+    if (ffarman_create(FFMAX_CUSTOM_OPERATORS, &custom_idx)!=FFSUCCESS){
+        return FFERROR;
+    }    
+
     return FFSUCCESS;
 }
 
@@ -47,20 +53,31 @@ int ffop_gcomp_operator_finalize(){
 
 int ffop_gcomp_operator_get(ffoperator_h opidx, ffop_gcomp_operator_t * opdescr){
     
-    if (opidx<0 || opidx >= FFOPERATOR_SENTINEL) return FFINVALID_ARG;
+    if (opidx<0) return FFINVALID_ARG;
 
     /* copy the descriptor */
-    *opdescr = operators[opidx]; 
-    return FFSUCCESS;
+    if (opidx < FFOPERATOR_SENTINEL){
+        *opdescr = operators[opidx]; 
+        return FFSUCCESS;
+    }
+
+    opidx = opidx - FFCUSTOM;
+    if (opidx < FFMAX_CUSTOM_OPERATORS){
+        *opdescr = custom_operators[opidx];
+        return FFSUCCESS;
+    }
+
+    return FFINVALID_ARG;
 }
 
-/*
+
 int ffop_gcomp_operator_custom_create(ffoperator_fun_t fun, int commutative, ffoperator_h * handle){
 
-    uint32_t idx = ffarman_get(&custom_op_idx);
+
+    uint32_t idx = ffarman_get(&custom_idx);
 
     if (idx<0){
-        FFLOG_ERROR("Too many custom operators! (check FFCUSTOM_OP_MAX)");
+        FFLOG_ERROR("Too many custom operators! (check FFMAX_CUSTOM_OPERATORS)");
         return FFENOMEM;
     }
 
@@ -69,7 +86,7 @@ int ffop_gcomp_operator_custom_create(ffoperator_fun_t fun, int commutative, ffo
     custom_operators[idx].commutative = commutative;
     custom_operators[idx].op_fun = fun;
 
-    *handle = idx;
+    *handle = idx + FFCUSTOM;
 
     return FFSUCCESS;
 }
@@ -77,14 +94,11 @@ int ffop_gcomp_operator_custom_create(ffoperator_fun_t fun, int commutative, ffo
 int ffop_gcomp_operator_custom_delete(ffoperator_h opidx){
     
     opidx = opidx - FFCUSTOM;
-    if (opidx >= FFCUSTOM_OP_MAX || custom_operators[opidx].type == FFNONE) return FFERROR;
+    if (opidx >= FFMAX_CUSTOM_OPERATORS || custom_operators[opidx].type == FFNONE) return FFERROR;
     custom_operators[opidx].type = FFNONE;   
 
-    ffarman_put(&custom_op_idx, opidx);
+    ffarman_put(&custom_idx, opidx);
     
     return FFSUCCESS;
 }
-
-*/
-
 
