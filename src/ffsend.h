@@ -4,7 +4,6 @@
 #include "ff.h"
 #include "ffinternal.h"
 #include "ffop_mem.h"
-#include "mpi/ffop_mpi.h"
 
 typedef struct ffsend{    
     ffpeer_t peer;
@@ -13,9 +12,7 @@ typedef struct ffsend{
     uint8_t flags;
 
     /* transport */
-#ifdef FFOP_MPI
-    mpi_transport_t transport;
-#endif
+    ffimpl_send_data_t transport;
 
 } ffsend_t;
 

@@ -22,7 +22,6 @@ static int dbg_myrank;
 
 #define MIN(a, b, c) (((a<b ? a : b) < c) ? (a<b ? a : b) : c)
 
-
 #define FFSEND 0
 #define FFRECV 1
 #define FFCOMP 2

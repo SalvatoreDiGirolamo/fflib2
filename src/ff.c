@@ -5,7 +5,6 @@
 #include "ffprogress.h"
 #include "ffinternal.h"
 
-#include "mpi/ffmpi.h"
 
 #ifdef FFDEBUG
 #include <sys/types.h>
@@ -18,7 +17,7 @@ int ffinit(int * argc, char *** argv){
 
     int ret; 
     
-    ffmpi_bind(&ff);
+    ffbind(&ff);
 
     ffstorage_init();
     ffop_init();

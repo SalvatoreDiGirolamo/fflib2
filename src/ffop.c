@@ -3,9 +3,6 @@
 #include "ffsend.h"
 #include "ffrecv.h"
 #include "ffstorage.h"
-
-#include "mpi/ffop_mpi.h"
-
 #include <sched.h>
 
 #define INITIAL_FFOP_POOL_COUNT 1024
