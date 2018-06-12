@@ -27,13 +27,13 @@ src/ffsend.c
 src/ffsend.h
 src/ffstorage.h
 src/ffstorage.c
-src/components/mpi/ffmpi.c
+src/ffbind.h
 src/components/mpi/ffmpi.h
+src/components/mpi/ffmpi.c
 src/components/mpi/ffop_mpi.c
 src/components/mpi/ffop_mpi.h
 src/components/mpi/ffop_mpi_init.c
 src/components/mpi/ffop_mpi_progresser.c
-src/components/mpi/ffop_mpi_progresser.c.bak
 src/components/mpi/ffop_mpi_progresser.h
 src/components/mpi/ffop_mpi_recv.c
 src/components/mpi/ffop_mpi_send.c
@@ -48,6 +48,7 @@ src/components/gcomp/ffop_gcomp_operator.c
 src/components/gcomp/ffop_gcomp_operator.h
 src/components/gcomp/ffgcomp_types.h
 src/bindings/mpi_binding.h
+src/bindings/mpi_binding.c
 )
 set_target_properties(fflib PROPERTIES
     VERSION ${PROJECT_VERSION}

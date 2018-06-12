@@ -4,6 +4,7 @@
 #include "ff.h"
 #include "ffinternal.h"
 #include "ffop_mem.h"
+#include "ffbind.h"
 
 typedef struct ffrecv{    
     ffpeer_t peer;
@@ -12,7 +13,7 @@ typedef struct ffrecv{
     uint8_t flags;
 
     /* transport */
-    ffimp_recv_data_t transport;
+    ffimpl_recv_data_t transport;
 
 } ffrecv_t;
 

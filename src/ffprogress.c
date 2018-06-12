@@ -5,7 +5,7 @@
 
 volatile int _progresser_ready = 0;
 
-static progresser_t progressers[MAX_PROGRESSERS];
+static ffprogresser_t progressers[MAX_PROGRESSERS];
 static uint32_t progressers_count = 0;
 
 

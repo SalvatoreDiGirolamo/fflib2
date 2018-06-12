@@ -4,6 +4,7 @@
 #include "ff.h"
 #include "ffinternal.h"
 #include "ffop_mem.h"
+#include "ffbind.h"
 
 typedef struct ffcomp{
     ffop_mem_t buffer1;
