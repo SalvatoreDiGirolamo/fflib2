@@ -10,6 +10,7 @@ set(TEST_C_SRCS
   send_recv
   ping_pong_dep
   simple_computation
+  custom_computation
 )
 
 set(TEST_CPP_SRCS
