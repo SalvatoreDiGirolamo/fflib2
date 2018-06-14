@@ -44,7 +44,7 @@ void * progress_thread(void * args){
         /* Satisfy the dependencies */
         while (completed!=NULL){ 
             ffop_complete(completed);
-            completed = completed->next;
+            completed = completed->instance.next;
         }
     }       
 

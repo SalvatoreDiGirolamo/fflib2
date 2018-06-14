@@ -6,12 +6,12 @@
 #define FFPOLLS_BEFORE_YIELD 1000
 
 #define FFOP_ENQUEUE(op, oplist) { \
-    op->next = *oplist; \
+    op->instance.next = *oplist; \
     *oplist = op; \
 }
 
 #define FFOP_COMPLETED(op){ \
-    __sync_add_and_fetch(&(op->completed), 1); \
+    __sync_add_and_fetch(&(op->instance.completed), 1); \
 } 
 
 
@@ -41,15 +41,26 @@ struct ffop{
     /* number of incoming dependencies (fired when 0) */
     uint32_t in_dep_count;
 
-    /* used in schedule_t for determining the next executable op */
-    struct ffop * next;
+    /* next operation in the current schedule. It is meaningful only if 
+     * the operations belongs to a schedule. */
+    struct ffop * sched_next;
+    
+    /* this is the consumable part that gets reset every time the operation
+     * has to be re-executed. */
+    struct instance{
+        /* current number of in-deps that need to be satisfied before 
+         * triggering this operaiton */
+        uint32_t dep_left;
 
-    /* flag that is set to true (!=0) if the op is completed */
-    volatile uint8_t completed;
+        /* used in schedule_t for determining the next executable op */
+        struct ffop * next; /* used for the readylist by the progressers */
 
-    /* flag that is set to true (!=0) if the op has been posted */
-    volatile uint8_t posted;
+        /* flag that is set to true (!=0) if the op is completed */
+        volatile uint8_t completed;
 
+        /* flag that is set to true (!=0) if the op has been posted */
+        volatile uint8_t posted;
+    } instance;
 };
 
 int ffop_init();
