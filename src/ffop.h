@@ -19,6 +19,7 @@
 #include "ffsend.h"
 #include "ffrecv.h"
 #include "ffcomp.h"
+#include "ffnop.h"
 
 typedef uint32_t ffop_type_t;
 
@@ -30,6 +31,7 @@ struct ffop{
         ffsend_t send;
         ffrecv_t recv;
         ffcomp_t comp;
+        ffnop_t  nop;
     };
 
     /* pointers to operations dependent on this */

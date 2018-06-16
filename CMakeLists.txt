@@ -28,6 +28,10 @@ src/ffsend.h
 src/ffstorage.h
 src/ffstorage.c
 src/ffbind.h
+src/ffnop.c
+src/ffnop.h
+src/ffschedule.c
+src/ffschedule.h
 src/components/mpi/ffmpi.h
 src/components/mpi/ffmpi.c
 src/components/mpi/ffop_mpi.c

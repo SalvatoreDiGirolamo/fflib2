@@ -36,6 +36,7 @@
 typedef int ffdatatype_h;
 typedef int ffoperator_h;
 typedef uint64_t ffop_h;
+typedef uint64_t ffschedule_h;
 
 int ffinit(int * argc, char *** argv);
 int fffinalize();
@@ -58,7 +59,13 @@ int ffcomp(void * buff1, void * buff2, int count, ffdatatype_h datatype, ffopera
 int ffcomp_operator_create(ffoperator_fun_t fun, int commutative, ffoperator_h * handle);
 int ffcomp_operator_delete(ffoperator_h handle);
 
+int ffnop(ffop_h * handle);
 
-
+int ffschedule_create(ffschedule_h *sched);
+int ffschedule_delete(ffschedule_h sched);
+int ffschedule_add_op(ffschedule_h sched, ffop_h op); 
+int ffschedule_post(ffschedule_h sched);
+int ffschedule_wait(ffschedule_h handle);
+int ffschedule_test(ffschedule_h handle, int * flag);
 
 #endif /* _FF_H_ */

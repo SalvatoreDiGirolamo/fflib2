@@ -7,12 +7,9 @@
 
 #define INITIAL_FFOP_POOL_COUNT 1024
 
-pool_h op_pool;
+static pool_h op_pool;
 
 int ffop_init(){
-
-    /* the MPI backend doesn't do anything in the init, so we use a common
-       init function. */
 
     op_pool = ffstorage_pool_create(sizeof(ffop_t), INITIAL_FFOP_POOL_COUNT);
 
@@ -26,12 +23,17 @@ int ffop_finalize(){
 
 int ffop_free(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
-    ffstorage_pool_put(op);
+    return ffstorage_pool_put(op);
 }
 
 int ffop_post(ffop_h _op){
     int res;
     ffop_t * op = (ffop_t *) _op;
+
+#ifdef FFDEBUG
+    if (op->instance.dep_left>0) FFLOG("Posting an op with dependencies left!\n");
+#endif
+
 #ifdef ARGS_CHECK
     if (op->type<0 || op->type>FFMAX_IDX) return FFINVALID_ARG;
 #endif

@@ -22,10 +22,11 @@ static int dbg_myrank;
 
 #define MIN(a, b, c) (((a<b ? a : b) < c) ? (a<b ? a : b) : c)
 
-#define FFSEND 0
-#define FFRECV 1
-#define FFCOMP 2
-#define FFMAX_IDX 3 /* not actual op, just boundary for ops indexes */
+#define FFSEND    0
+#define FFRECV    1
+#define FFCOMP    2
+#define FFNOP     3
+#define FFMAX_IDX 4 /* not actual op, just boundary for ops indexes */
 
 typedef int ffdatatype_t; /* for now the internal datatype type is an int as well */
 typedef uint32_t ffpeer_t;

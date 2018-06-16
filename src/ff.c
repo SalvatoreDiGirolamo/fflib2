@@ -1,6 +1,7 @@
 
 #include "ff.h"
 #include "ffop.h"
+#include "ffnop.h"
 #include "ffstorage.h"
 #include "ffprogress.h"
 #include "ffinternal.h"
@@ -18,7 +19,11 @@ int ffinit(int * argc, char *** argv){
     int ret; 
     
     ffbind(&ff);
-
+        
+    /* ffnop is internal */
+    ff.impl.ops[FFNOP].init = NULL;
+    ff.impl.ops[FFNOP].post = ffnop_post; 
+    
     ffstorage_init();
     ffop_init();
 
