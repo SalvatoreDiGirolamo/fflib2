@@ -36,7 +36,6 @@ int ffop_post(ffop_h _op){
     if (op->type<0 || op->type>FFMAX_IDX) return FFINVALID_ARG;
 #endif
     op->instance.posted=1;
-    op->instance.dep_left = op->in_dep_count;
     res = ff.impl.ops[op->type].post(op, NULL);
 
     /* check if the operation has been immediately completed */
@@ -93,6 +92,7 @@ int ffop_hb(ffop_h _first, ffop_h _second){
 
     first->dependent[idx] = second;
     __sync_fetch_and_add(&(second->in_dep_count), 1);
+    second->instance.dep_left = second->in_dep_count;
 
     return FFSUCCESS;
 }
