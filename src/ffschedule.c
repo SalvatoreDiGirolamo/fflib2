@@ -15,10 +15,10 @@ int ffschedule_init(){
 
 
 int ffschedule_create(ffschedule_h * handle){
-    ffschedule_t ** sched = (ffschedule_t **) handle;    
+    ffschedule_t ** sched = (ffschedule_t **) handle; 
     ffstorage_pool_get(schedule_pool, (void **) sched);
     (*sched)->oplist = NULL;
-    
+   
     ffnop((ffop_h *) &((*sched)->begin_op));
     ffnop((ffop_h *) &((*sched)->end_op));
 
@@ -31,8 +31,8 @@ int ffschedule_delete(ffschedule_h handle){
 }
 
 int ffschedule_add_op(ffschedule_h schedh, ffop_h oph){
-    ffschedule_t * sched = (ffschedule_t *) schedh;  
-    ffop_t * op = (ffop_t *) oph;  
+    ffschedule_t * sched = (ffschedule_t *) schedh;
+    ffop_t * op = (ffop_t *) oph;
     
     op->sched_next = sched->oplist;
     sched->oplist = op;

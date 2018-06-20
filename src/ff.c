@@ -5,7 +5,7 @@
 #include "ffstorage.h"
 #include "ffprogress.h"
 #include "ffinternal.h"
-
+#include "ffschedule.h"
 
 #ifdef FFDEBUG
 #include <sys/types.h>
@@ -17,7 +17,7 @@ ffdescr_t ff;
 int ffinit(int * argc, char *** argv){
 
     int ret; 
-    
+
     ffbind(&ff);
         
     /* ffnop is internal */
@@ -26,6 +26,7 @@ int ffinit(int * argc, char *** argv){
     
     ffstorage_init();
     ffop_init();
+    ffschedule_init();
 
     ff.impl.init(argc, argv);
 

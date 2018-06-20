@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <stdio.h>
 
+#include <unistd.h>
 #define FFCALL(X) { int r; if (r=(X)!=FFSUCCESS) return r; }
 #define FFCALLV(X, V) { int r; if (r=(X)!=FFSUCCESS) return V; }
 
@@ -15,7 +16,7 @@
 
 #ifdef FFDEBUG
 static int dbg_myrank;
-#define FFLOG(MSG, ...) printf("[%i][%s:%i] "MSG, dbg_myrank, __FILE__, __LINE__,  ##__VA_ARGS__)
+#define FFLOG(MSG, ...) printf("[%i - %u][%s:%i] "MSG, dbg_myrank, getpid(), __FILE__, __LINE__,  ##__VA_ARGS__)
 #else
 #define FFLOG(MSG, ...) 
 #endif

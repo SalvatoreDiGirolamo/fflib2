@@ -2,6 +2,7 @@
 #include "ff.h"
 #include "ffinternal.h"
 #include "ffmpi.h"
+#include "components/gcomp/ffgcomp.h"
 
 #include <mpi.h>
 

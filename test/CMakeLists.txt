@@ -11,6 +11,7 @@ set(TEST_C_SRCS
   ping_pong_dep
   simple_computation
   custom_computation
+  ping_pong_schedule
 )
 
 set(TEST_CPP_SRCS

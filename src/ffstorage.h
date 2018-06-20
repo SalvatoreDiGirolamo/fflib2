@@ -19,8 +19,8 @@ typedef struct ffmem_block{
 } ffmem_block_t;
 
 typedef struct ffpool{
+    ffmem_block_t * mem;
     ffmem_block_t * head;
-    ffmem_block_t * tofree;
     uint32_t pool_size;
     uint32_t curr_size;
     size_t elem_size;
