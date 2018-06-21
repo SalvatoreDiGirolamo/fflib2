@@ -20,7 +20,6 @@
 #define FFCHAR 4
 #define FFDATATYPE_SENTINEL 5
 
-
 /* operators */
 #define FFSUM    0
 #define FFPROD   1
@@ -29,6 +28,10 @@
 #define FFOPERATOR_SENTINEL 4
 #define FFCUSTOM 5
 
+/* options */
+#define FFOP_DEP_AND 0x002
+#define FFOP_DEP_OR 0x004
+#define FFOP_PERSISTENT 0x008
 
 /* Our NULL */
 #define FFNONE -1
@@ -59,7 +62,7 @@ int ffcomp(void * buff1, void * buff2, int count, ffdatatype_h datatype, ffopera
 int ffcomp_operator_create(ffoperator_fun_t fun, int commutative, ffoperator_h * handle);
 int ffcomp_operator_delete(ffoperator_h handle);
 
-int ffnop(ffop_h * handle);
+int ffnop(int options, ffop_h * handle);
 
 int ffschedule_create(ffschedule_h *sched);
 int ffschedule_delete(ffschedule_h sched);

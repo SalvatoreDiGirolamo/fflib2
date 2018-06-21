@@ -10,6 +10,7 @@ int ffsend(void * buffer, int count, ffdatatype_h datatype, int source, int tag,
     *_op = (ffop_h) op;
 
     op->type = FFSEND;
+    op->options &= options;
 
     op->send.peer = source;
     op->send.tag = tag;

@@ -19,8 +19,8 @@ int ffschedule_create(ffschedule_h * handle){
     ffstorage_pool_get(schedule_pool, (void **) sched);
     (*sched)->oplist = NULL;
    
-    ffnop((ffop_h *) &((*sched)->begin_op));
-    ffnop((ffop_h *) &((*sched)->end_op));
+    ffnop(0, (ffop_h *) &((*sched)->begin_op));
+    ffnop(0, (ffop_h *) &((*sched)->end_op));
 
     return FFSUCCESS;
 }

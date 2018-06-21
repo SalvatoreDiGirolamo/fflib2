@@ -43,6 +43,9 @@ struct ffop{
     /* number of incoming dependencies (fired when 0) */
     uint32_t in_dep_count;
 
+    /* options */
+    uint32_t options;
+
     /* next operation in the current schedule. It is meaningful only if 
      * the operations belongs to a schedule. */
     struct ffop * sched_next;

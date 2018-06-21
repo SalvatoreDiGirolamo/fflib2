@@ -1,10 +1,11 @@
 #include "ffnop.h"
 #include "ffop.h"
 
-int ffnop(ffop_h * _op){
+int ffnop(int options, ffop_h * _op){
     ffop_t * op;
     ffop_create(&op);
     *_op = (ffop_h) op;
+    op->options = options;
 
     op->type = FFNOP;
 

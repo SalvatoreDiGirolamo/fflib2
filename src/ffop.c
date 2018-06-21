@@ -109,6 +109,7 @@ int ffop_create(ffop_t ** ptr){
     op->out_dep_count=0;
     op->in_dep_count=0;
     op->sched_next = NULL;
+    op->options = FFOP_DEP_AND;
 
     op->instance.next = NULL;
     op->instance.completed = 0;
@@ -124,7 +125,7 @@ int ffop_complete(ffop_t * op){
 
         uint32_t deps = __sync_add_and_fetch(&(dep_op->instance.dep_left), -1);
         FFLOG("Decreasing %p dependencies by one: now %i\n", dep_op, dep_op->instance.dep_left);
-        if (deps==0){
+        if (deps == 0 || op->options & FFOP_DEP_OR == FFOP_DEP_OR){
             FFLOG("All dependencies of %p are satisfied: posting it!\n", dep_op);
             ffop_post((ffop_h) dep_op);
         }
