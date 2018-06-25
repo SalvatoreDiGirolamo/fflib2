@@ -9,6 +9,7 @@ int ffnop(int options, ffop_h * _op){
 
     op->type = FFNOP;
 
+    FFLOG("creating ffnop %p\n", op);
     return FFSUCCESS;
 }
 

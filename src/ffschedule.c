@@ -37,11 +37,15 @@ int ffschedule_add_op(ffschedule_h schedh, ffop_h oph){
     op->sched_next = sched->oplist;
     sched->oplist = op;
 
+    FFLOG("adding op %p to schedule %p\n", op, sched);
+    
     if (op->in_dep_count==0){
+        FFLOG("making op %p dependent from begin_op\n", op);
         ffop_hb((ffop_h) sched->begin_op, (ffop_h) op);
     }
 
     if (op->out_dep_count==0){
+        FFLOG("making end_op dependent from op %p\n", op);
         ffop_hb((ffop_h) op, (ffop_h) sched->end_op);
     }
 
@@ -55,6 +59,7 @@ int ffschedule_post(ffschedule_h handle){
 
 int ffschedule_wait(ffschedule_h handle){
     ffschedule_t * sched = (ffschedule_t *) handle; 
+    FFLOG("Waiting on schedule %p (end_op: %p)\n", sched, sched->end_op);
     return ffop_wait((ffop_h) sched->end_op);
 }
 

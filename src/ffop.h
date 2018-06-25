@@ -11,11 +11,13 @@
 }
 
 #define FFOP_COMPLETED(op){ \
-    __sync_add_and_fetch(&(op->instance.completed_version), 1); \
+    __sync_add_and_fetch(&(op->instance.completed), 1); \
 } 
 
-#define FFOP_IS_COMPLETED(op) (op->instance.completed_version == op->instance.posted_version)
+//#define FFOP_IS_COMPLETED(op) (op->instance.posted_version > op->version && op->instance.completed_version == op->instance.posted_version)
 
+
+#define FFOP_IS_COMPLETED(op) (op->instance.completed)
 
 //#include "ffinternal.h"
 #include "ffsend.h"
@@ -66,10 +68,13 @@ struct ffop{
         struct ffop * next; 
 
         /* version of the op that has been completed */
-        volatile uint32_t completed_version;
+        //volatile uint32_t completed_version;
 
         /* version of the op that has been posted*/
-        volatile uint32_t posted_version;
+        //volatile uint32_t posted_version;
+
+        /* completion flag */
+        volatile uint8_t completed;
     } instance;
 };
 

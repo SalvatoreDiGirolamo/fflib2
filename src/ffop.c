@@ -43,7 +43,9 @@ int ffop_post(ffop_h _op){
         return FFINVALID_ARG;
     }
 
-    __sync_fetch_and_add(&(op->instance.posted_version), 1);
+    op->instance.completed = 0;
+
+    //__sync_fetch_and_add(&(op->instance.posted_version), 1);
     res = ff.impl.ops[op->type].post(op, NULL);
 
     /* check if the operation has been immediately completed */
@@ -65,6 +67,7 @@ int ffop_wait(ffop_h _op){
         }
     }
 
+    //FFLOG("Wait on %p finished: version: %u; posted version: %u; completed version: %u\n", op, op->version, op->instance.posted_version, op->instance.completed_version);
     return FFSUCCESS;
 }
 
@@ -110,16 +113,18 @@ int ffop_create(ffop_t ** ptr){
 
     op->instance.next               = NULL;
     op->instance.dep_left           = 0;
-    op->instance.posted_version     = 0;
-    op->instance.completed_version  = 0;
+    //op->instance.posted_version     = 0;
+    //op->instance.completed_version  = 0;
+    op->instance.completed          = 0;
 
     return FFSUCCESS;
 }
 
 int ffop_complete(ffop_t * op){
 
+    FFLOG("completing op %p\n", op);
     __sync_fetch_and_add(&(op->version), 1);
-
+    
     for (int i=0; i<op->out_dep_count; i++){
         ffop_t * dep_op = op->dependent[i];
 

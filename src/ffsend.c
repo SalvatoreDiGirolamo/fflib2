@@ -18,6 +18,8 @@ int ffsend(void * buffer, int count, ffdatatype_h datatype, int source, int tag,
     op->send.buffer.count = count;
     op->send.buffer.datatype = datatype;
 
+    FFLOG("creating ffsend %p\n", op);
+
     if (options & FFOP_MEM_IDX == FFOP_MEM_IDX){
         op->send.buffer.type = FFOP_MEM_IDX;
         op->send.buffer.idx = *((uint32_t *) buffer);

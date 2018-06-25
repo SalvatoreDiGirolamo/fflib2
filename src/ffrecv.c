@@ -18,6 +18,8 @@ int ffrecv(void * buffer, int count, ffdatatype_h datatype, int source, int tag,
     op->recv.buffer.count = count;
     op->recv.buffer.datatype = datatype;
 
+    FFLOG("creating ffrecv %p\n", op);
+
     if (options & FFOP_MEM_IDX == FFOP_MEM_IDX){
         op->recv.buffer.type = FFOP_MEM_IDX;
         op->recv.buffer.idx = *((uint32_t *) buffer);
