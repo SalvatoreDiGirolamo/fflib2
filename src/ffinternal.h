@@ -14,6 +14,8 @@
 
 #define FFLOG_ERROR(MSG) { printf("FFlib error: %s\n", MSG); }
 
+#define IS_OPT_SET(op, opt) (op->options & opt == opt)
+
 #ifdef FFDEBUG
 static int dbg_myrank;
 #define FFLOG(MSG, ...) printf("[%i - %u][%s:%i] "MSG, dbg_myrank, getpid(), __FILE__, __LINE__,  ##__VA_ARGS__)

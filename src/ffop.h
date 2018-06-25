@@ -11,8 +11,10 @@
 }
 
 #define FFOP_COMPLETED(op){ \
-    __sync_add_and_fetch(&(op->instance.completed), 1); \
+    __sync_add_and_fetch(&(op->instance.completed_version), 1); \
 } 
+
+#define FFOP_IS_COMPLETED(op) (op->instance.completed_version == op->instance.posted_version)
 
 
 //#include "ffinternal.h"
@@ -49,7 +51,10 @@ struct ffop{
     /* next operation in the current schedule. It is meaningful only if 
      * the operations belongs to a schedule. */
     struct ffop * sched_next;
-    
+
+    /* current version of the op that has to be posted */
+    volatile uint32_t version;
+
     /* this is the consumable part that gets reset every time the operation
      * has to be re-executed. */
     struct instance{
@@ -57,14 +62,14 @@ struct ffop{
          * triggering this operaiton */
         uint32_t dep_left;
 
-        /* used in schedule_t for determining the next executable op */
-        struct ffop * next; /* used for the readylist by the progressers */
+        /* used for the readylist by the progressers */
+        struct ffop * next; 
 
-        /* flag that is set to true (!=0) if the op is completed */
-        volatile uint8_t completed;
+        /* version of the op that has been completed */
+        volatile uint32_t completed_version;
 
-        /* flag that is set to true (!=0) if the op has been posted */
-        volatile uint8_t posted;
+        /* version of the op that has been posted*/
+        volatile uint32_t posted_version;
     } instance;
 };
 

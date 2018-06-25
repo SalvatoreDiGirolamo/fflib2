@@ -31,7 +31,7 @@
 /* options */
 #define FFOP_DEP_AND 0x002
 #define FFOP_DEP_OR 0x004
-#define FFOP_PERSISTENT 0x008
+#define FFOP_NON_PERSISTENT 0x008
 
 /* Our NULL */
 #define FFNONE -1

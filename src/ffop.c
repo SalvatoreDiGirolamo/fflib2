@@ -37,11 +37,17 @@ int ffop_post(ffop_h _op){
 #ifdef ARGS_CHECK
     if (op->type<0 || op->type>FFMAX_IDX) return FFINVALID_ARG;
 #endif
-    op->instance.posted=1;
+
+    if (op->version>0 && IS_OPT_SET(op, FFOP_NON_PERSISTENT)){
+        FFLOG("Re-posting a non-persistent operation is not allowed!\n");
+        return FFINVALID_ARG;
+    }
+
+    __sync_fetch_and_add(&(op->instance.posted_version), 1);
     res = ff.impl.ops[op->type].post(op, NULL);
 
     /* check if the operation has been immediately completed */
-    if (op->instance.completed){ ffop_complete(op); }
+    if (FFOP_IS_COMPLETED(op)){ ffop_complete(op); }
     
     return res;
 }
@@ -49,13 +55,8 @@ int ffop_post(ffop_h _op){
 int ffop_wait(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
 
-    if (!op->instance.posted && op->in_dep_count==0){
-        FFLOG_ERROR("Waiting on an independent op that has not been posted!");
-        return FFINVALID_ARG;
-    }
-
     uint32_t polls=0;
-    while (op->instance.completed==0){
+    while (!FFOP_IS_COMPLETED(op)){
         if (polls >= FFPOLLS_BEFORE_YIELD){
             polls=0;
             sched_yield();
@@ -69,13 +70,8 @@ int ffop_wait(ffop_h _op){
 
 int ffop_test(ffop_h _op, int * flag){
     ffop_t * op = (ffop_t *) _op;
-    
-    if (!op->instance.posted && op->in_dep_count==0){
-        FFLOG_ERROR("Testing an independent op that has not been posted!");
-        return FFINVALID_ARG;
-    }
 
-    return op->instance.completed!=0;
+    return FFOP_IS_COMPLETED(op);
 }
 
 
@@ -104,31 +100,44 @@ int ffop_hb(ffop_h _first, ffop_h _second){
 int ffop_create(ffop_t ** ptr){
     ffstorage_pool_get(op_pool, (void **) ptr);
     
-    ffop_t * op = *ptr;
+    ffop_t * op                     = *ptr;
 
-    op->out_dep_count=0;
-    op->in_dep_count=0;
-    op->sched_next = NULL;
-    op->options = FFOP_DEP_AND;
+    op->out_dep_count               = 0;
+    op->in_dep_count                = 0;
+    op->sched_next                  = NULL;
+    op->options                     = FFOP_DEP_AND;
+    op->version                     = 0;
 
-    op->instance.next = NULL;
-    op->instance.completed = 0;
-    op->instance.posted = 0;
-    op->instance.dep_left = 0;
+    op->instance.next               = NULL;
+    op->instance.dep_left           = 0;
+    op->instance.posted_version     = 0;
+    op->instance.completed_version  = 0;
 
     return FFSUCCESS;
 }
 
 int ffop_complete(ffop_t * op){
+
+    __sync_fetch_and_add(&(op->version), 1);
+
     for (int i=0; i<op->out_dep_count; i++){
         ffop_t * dep_op = op->dependent[i];
 
         uint32_t deps = __sync_add_and_fetch(&(dep_op->instance.dep_left), -1);
         FFLOG("Decreasing %p dependencies by one: now %i\n", dep_op, dep_op->instance.dep_left);
-        if (deps == 0 || op->options & FFOP_DEP_OR == FFOP_DEP_OR){
+
+        int trigger;
+        // triggering conditions:
+        // no dependencies left if is an AND dependency OR at least one satisfied if is an OR dep
+        trigger  = deps == 0 || IS_OPT_SET(op, FFOP_DEP_OR); 
+        // the op has not been posted already OR the op is persistent
+        trigger &= (op->version==0 || !IS_OPT_SET(op, FFOP_NON_PERSISTENT));
+
+        if (trigger){
             FFLOG("All dependencies of %p are satisfied: posting it!\n", dep_op);
             ffop_post((ffop_h) dep_op);
         }
+
     }
     return FFSUCCESS;
 }
