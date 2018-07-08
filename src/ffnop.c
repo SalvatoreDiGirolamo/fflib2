@@ -9,7 +9,7 @@ int ffnop(int options, ffop_h * _op){
 
     op->type = FFNOP;
 
-    FFLOG("creating ffnop %p\n", op);
+    FFLOG("FFNOP ID: %lu; options: %i\n", op->id, options); 
     return FFSUCCESS;
 }
 
@@ -18,3 +18,7 @@ int ffnop_post(ffop_t * op, ffop_mem_set_t * mem){
     return FFSUCCESS;
 }
 
+int ffnop_tostring(ffop_t * op, char * str, int len){
+    snprintf(str, len, "N.%lu", op->id); 
+    return FFSUCCESS;
+}

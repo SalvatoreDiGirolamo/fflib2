@@ -12,4 +12,6 @@ typedef struct ffnop{
 
 int ffnop_post(ffop_t * op, ffop_mem_set_t * mem);
 
+int ffnop_tostring(ffop_t * op, char * str, int len);
+
 #endif /* _FFNOP_H_ */

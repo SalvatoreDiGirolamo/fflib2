@@ -10,7 +10,8 @@ int ffcomp(void * buff1, void * buff2, int count, ffdatatype_h datatype, ffopera
     ffop_t * op;
     ffop_create(&op);
 
-    FFLOG("Creating computation\n");
+
+    FFLOG("FFCOMP ID: %lu; buff1: %p; buff2: %p; buff3: %p; count: %i; datatype: %i; operator: %i; options: %i\n", op->id, buff1, buff2, buff3, count, datatype, ffoperator, options);
     *ophandle = (ffop_h) op;    
 
     op->type = FFCOMP;
@@ -58,4 +59,10 @@ int ffcomp_operator_create(ffoperator_fun_t fun, int commutative, ffoperator_h *
 int ffcomp_operator_delete(ffoperator_h handle){
     return ff.impl.operator_delete(handle);
 }
+
+int ffcomp_tostring(ffop_t * op, char * str, int len){
+    snprintf(str, len, "C.%lu", op->id); 
+    return FFSUCCESS;
+}
+
 

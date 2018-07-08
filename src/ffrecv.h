@@ -20,6 +20,7 @@ typedef struct ffrecv{
 
 int ffrecv_post(ffop_t * op, ffop_mem_set_t * mem);
 
+int ffrecv_tostring(ffop_t * op, char * str, int len);
 
 #endif /* _FFRECV_H_ */
 

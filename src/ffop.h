@@ -29,6 +29,8 @@ typedef uint32_t ffop_type_t;
 
 struct ffop{
     ffop_type_t type;
+    
+    uint64_t id;
 
     /* actual operation */
     union{

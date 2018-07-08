@@ -12,6 +12,7 @@ set(TEST_C_SRCS
   simple_computation
   custom_computation
   ping_pong_schedule
+  allreduce
 )
 
 set(TEST_CPP_SRCS

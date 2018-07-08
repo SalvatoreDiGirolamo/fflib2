@@ -1,7 +1,7 @@
 #include "ffsend.h"
 #include "ffop.h"
 
-int ffsend(void * buffer, int count, ffdatatype_h datatype, int source, int tag, 
+int ffsend(void * buffer, int count, ffdatatype_h datatype, int dest, int tag, 
     int options, ffop_h * _op){
  
     int res;   
@@ -12,13 +12,13 @@ int ffsend(void * buffer, int count, ffdatatype_h datatype, int source, int tag,
     op->type = FFSEND;
     op->options &= options;
 
-    op->send.peer = source;
+    op->send.peer = dest;
     op->send.tag = tag;
 
     op->send.buffer.count = count;
     op->send.buffer.datatype = datatype;
 
-    FFLOG("creating ffsend %p\n", op);
+    FFLOG("FFSEND ID: %lu; dest: %i; count: %i; datatype: %i; tag: %i; options: %i\n", op->id, dest, count, datatype, tag, options);
 
     if (options & FFOP_MEM_IDX == FFOP_MEM_IDX){
         op->send.buffer.type = FFOP_MEM_IDX;
@@ -35,6 +35,10 @@ int ffsend(void * buffer, int count, ffdatatype_h datatype, int source, int tag,
 }
 
 
+int ffsend_tostring(ffop_t * op, char * str, int len){
+    snprintf(str, len, "S.%lu(%i)", op->id, op->send.peer); 
+    return FFSUCCESS;
+}
 
 
 

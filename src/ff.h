@@ -13,28 +13,29 @@
 #define FFOP_MPI
 
 /* datatypes */
-#define FFINT32 0
-#define FFINT64 1
-#define FFDOUBLE 2
-#define FFFLOAT 3
-#define FFCHAR 4
+#define FFINT32             0
+#define FFINT64             1
+#define FFDOUBLE            2
+#define FFFLOAT             3
+#define FFCHAR              4
 #define FFDATATYPE_SENTINEL 5
 
 /* operators */
-#define FFSUM    0
-#define FFPROD   1
-#define FFMAX    2
-#define FFMIN    3
-#define FFOPERATOR_SENTINEL 4
-#define FFCUSTOM 5
+#define FFSUM               0
+#define FFPROD              1
+#define FFMAX               2
+#define FFMIN               3
+#define FFIDENTITY          4
+#define FFOPERATOR_SENTINEL 5
+#define FFCUSTOM            6
 
 /* options */
-#define FFOP_DEP_AND 0x002
-#define FFOP_DEP_OR 0x004
+#define FFOP_DEP_AND        0x002
+#define FFOP_DEP_OR         0x004
 #define FFOP_NON_PERSISTENT 0x008
 
 /* Our NULL */
-#define FFNONE -1
+#define FFNONE              -1
 
 typedef int ffdatatype_h;
 typedef int ffoperator_h;
@@ -52,6 +53,7 @@ int ffop_wait(ffop_h op);
 int ffop_test(ffop_h op, int * flag);
 int ffop_hb(ffop_h first, ffop_h second);
 int ffop_free(ffop_h _op);
+int ffop_tostring(ffop_h op, char * str, int len);
 
 int ffsend(void * buffer, int count, ffdatatype_h datatype, int dest, int tag, int options, ffop_h * op);
 int ffrecv(void * buffer, int count, ffdatatype_h datatype, int source, int tag, int options, ffop_h * op);
@@ -70,5 +72,9 @@ int ffschedule_add_op(ffschedule_h sched, ffop_h op);
 int ffschedule_post(ffschedule_h sched);
 int ffschedule_wait(ffschedule_h handle);
 int ffschedule_test(ffschedule_h handle, int * flag);
+
+
+int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h ffoperator, ffdatatype_h datatype, ffschedule_h * _sched);
+
 
 #endif /* _FF_H_ */

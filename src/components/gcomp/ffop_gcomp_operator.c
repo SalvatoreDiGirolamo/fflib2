@@ -6,6 +6,7 @@
 #define SUM(TYPE, A, B, C, SIZE) \
         for (uint32_t i = 0; i<SIZE; i++){ ((TYPE *)C)[i] = ((TYPE *)A)[i] + ((TYPE *)B)[i]; }
 
+
 static ffop_gcomp_operator_t operators[FFOPERATOR_SENTINEL];
 static ffop_gcomp_operator_t custom_operators[FFMAX_CUSTOM_OPERATORS];
 static ffarman_t custom_idx;
@@ -23,7 +24,7 @@ int ffop_gcomp_operator_sum(void * a, void * b, void* c, uint32_t size, ffdataty
             SUM(double, a, b, c, size);
             break;
         case FFFLOAT:
-            SUM(double, a, b, c, size);
+            SUM(float, a, b, c, size);
             break;
         default:
             FFLOG_ERROR("Operator not found!\n");
@@ -33,12 +34,46 @@ int ffop_gcomp_operator_sum(void * a, void * b, void* c, uint32_t size, ffdataty
     return FFSUCCESS;
 }
 
+
+int ffop_gcomp_operator_copy(void * a, void * b, void* c, uint32_t size, ffdatatype_h type){
+
+    size_t unitsize;
+    switch (type){
+        case FFINT32: 
+            unitsize = sizeof(int32_t);
+            break;
+        case FFINT64:
+            unitsize = sizeof(int64_t);
+            break;
+        case FFDOUBLE:
+            unitsize = sizeof(double);
+            break;
+        case FFFLOAT:
+            unitsize = sizeof(float);
+            break;
+        default:
+            FFLOG_ERROR("Operator not found!\n");
+            return FFINVALID_ARG;         
+    }
+
+    memcpy(c, a, size*unitsize);
+
+    return FFSUCCESS;
+}
+
+
 int ffop_gcomp_operator_init(){
 
     operators[FFSUM].type = FFSUM;
     operators[FFSUM].commutative = 1;
     operators[FFSUM].idx = FFSUM;
     operators[FFSUM].op_fun = ffop_gcomp_operator_sum;
+
+    operators[FFIDENTITY].type = FFIDENTITY;
+    operators[FFIDENTITY].commutative = 1;
+    operators[FFIDENTITY].idx = FFIDENTITY;
+    operators[FFIDENTITY].op_fun = ffop_gcomp_operator_copy;
+
 
     if (ffarman_create(FFMAX_CUSTOM_OPERATORS, &custom_idx)!=FFSUCCESS){
         return FFERROR;

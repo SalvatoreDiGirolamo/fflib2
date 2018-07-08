@@ -53,6 +53,7 @@ src/components/gcomp/ffop_gcomp_operator.h
 src/components/gcomp/ffgcomp_types.h
 src/bindings/mpi_binding.h
 src/bindings/mpi_binding.c
+src/colls/ffallreduce.c
 )
 set_target_properties(fflib PROPERTIES
     VERSION ${PROJECT_VERSION}

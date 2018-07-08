@@ -9,6 +9,7 @@ typedef struct ffschedule{
     ffop_t * oplist;
     ffop_t * begin_op;
     ffop_t * end_op;
+    uint64_t id;
 } ffschedule_t;
 
 
