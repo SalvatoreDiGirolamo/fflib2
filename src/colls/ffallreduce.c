@@ -1,6 +1,6 @@
 #include "ffcollectives.h"
 
-#define TMPMEM(MEM, TYPE, BSIZE, OFF) (void *) &(((uint8_t *) MEM)[(BSIZE*OFF)])
+#define TMPMEM(MEM, TYPE, BSIZE, OFF) (void *) &(((uint8_t *) MEM)[((BSIZE)*(OFF))])
 
 int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h operator, ffdatatype_h datatype, ffschedule_h * _sched){
  
@@ -44,12 +44,12 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
 
             if(peer<p) {
 
-                FFLOG("nchild: %i; tmpmem: %p; r: %i; peer: %i; count: %i; unitsize: %lu\n", nchild, TMPMEM(tmpmem, datatype, count*unitsize, r), r, peer, count, unitsize);
+                FFLOG("nchild: %i; tmpmem: %p; r: %i; peer: %i; count: %i; unitsize: %lu\n", nchild, TMPMEM(tmpmem, datatype, count*unitsize, r-1), r, peer, count, unitsize);
                 //Receive from the peer
-                ffrecv(TMPMEM(tmpmem, datatype, count*unitsize, r), count, datatype, peer, tag, 0, &recv); 
+                ffrecv(TMPMEM(tmpmem, datatype, count*unitsize, r-1), count, datatype, peer, tag, 0, &recv); 
 
                 //accumulate
-                ffcomp(TMPMEM(tmpmem, datatype, count*unitsize, r), rcvbuff, count, datatype, operator, FFCOMP_DEST_ATOMIC, rcvbuff, &comp); 
+                ffcomp(TMPMEM(tmpmem, datatype, count*unitsize, r-1), rcvbuff, count, datatype, operator, FFCOMP_DEST_ATOMIC, rcvbuff, &comp); 
 
                 //we need to receive before start computing
                 ffop_hb(recv, comp);

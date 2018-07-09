@@ -40,8 +40,6 @@ int main(int argc, char * argv[]){
             reduced[j] = 0;
         }
 
-        printf("Rank %i; POST\n", rank);
-
         ffschedule_post(allreduce);
         ffschedule_wait(allreduce);
 
