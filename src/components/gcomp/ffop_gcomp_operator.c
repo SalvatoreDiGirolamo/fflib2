@@ -3,6 +3,8 @@
 #include "ffop_gcomp_operator.h"
 #include "utils/ffarman.h"
 
+#include <string.h>
+
 #define SUM(TYPE, A, B, C, SIZE) \
         for (uint32_t i = 0; i<SIZE; i++){ ((TYPE *)C)[i] = ((TYPE *)A)[i] + ((TYPE *)B)[i]; }
 
@@ -36,25 +38,8 @@ int ffop_gcomp_operator_sum(void * a, void * b, void* c, uint32_t size, ffdataty
 
 
 int ffop_gcomp_operator_copy(void * a, void * b, void* c, uint32_t size, ffdatatype_h type){
-
     size_t unitsize;
-    switch (type){
-        case FFINT32: 
-            unitsize = sizeof(int32_t);
-            break;
-        case FFINT64:
-            unitsize = sizeof(int64_t);
-            break;
-        case FFDOUBLE:
-            unitsize = sizeof(double);
-            break;
-        case FFFLOAT:
-            unitsize = sizeof(float);
-            break;
-        default:
-            FFLOG_ERROR("Operator not found!\n");
-            return FFINVALID_ARG;         
-    }
+    ffdatatype_size(type, &unitsize);
 
     memcpy(c, a, size*unitsize);
 

@@ -33,6 +33,12 @@ int ffinit(int * argc, char *** argv){
     ff.impl.ops[FFNOP].tostring  = ffnop_tostring;
     ff.impl.ops[FFCOMP].tostring  = ffcomp_tostring;
 
+    /* finalize is internal */
+    ff.impl.ops[FFSEND].finalize = ffsend_finalize;
+    ff.impl.ops[FFRECV].finalize = ffrecv_finalize;
+    ff.impl.ops[FFNOP].finalize = ffnop_finalize;
+    ff.impl.ops[FFCOMP].finalize = ffcomp_finalize;
+
     ffstorage_init();
     ffop_init();
     ffschedule_init();

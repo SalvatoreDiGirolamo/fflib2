@@ -30,7 +30,8 @@ typedef uint32_t ffop_mem_type_t;
 
 typedef struct ffop_mem{
     ffop_mem_type_t type;
-    
+    FFLOCK_TYPE lock; 
+   
     union{
         void * ptr;
         uint32_t idx;
@@ -48,5 +49,8 @@ typedef struct ffop_mem_set{
 
     struct ffmem_set * next;
 } ffop_mem_set_t;
+
+int ffop_mem_init(ffop_mem_t * mem);
+int ffop_mem_finalize(ffop_mem_t * mem);
 
 #endif /* _FFOP_MEM_H_ */

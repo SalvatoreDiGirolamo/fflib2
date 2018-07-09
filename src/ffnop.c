@@ -22,3 +22,8 @@ int ffnop_tostring(ffop_t * op, char * str, int len){
     snprintf(str, len, "N.%lu", op->id); 
     return FFSUCCESS;
 }
+
+int ffnop_finalize(ffop_t * op){
+
+    return FFSUCCESS;
+}

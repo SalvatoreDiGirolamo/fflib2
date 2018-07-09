@@ -12,11 +12,13 @@ add_library(fflib SHARED
 src/ff.c
 src/ffcomp.h
 src/ffdatatype.h
+src/ffdatatype.c
 src/ff.h
 src/ffinternal.h
 src/ffop.c
 src/ffop.h
 src/ffop_mem.h
+src/ffop_mem.c
 src/ffcomp.c
 src/ffcomp.h
 src/ffprogress.c

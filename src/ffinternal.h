@@ -2,6 +2,8 @@
 #define _FFINTERNAL_
 
 #include "ff.h"
+#include "ffdatatype.h"
+#include "fflocks.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -61,11 +63,13 @@ typedef int (*ffimpl_operator_delete_t)(ffoperator_h);
 typedef int (*ffop_post_t)(ffop_t*, ffop_mem_set_t*);
 typedef int (*ffop_init_t)(ffop_t*);
 typedef int (*ffop_tostring_t)(ffop_t*, char * str, int len);
+typedef int (*ffop_finalize_t)(ffop_t*);
 
 typedef struct ffop_descriptor{
     ffop_init_t init;
     ffop_post_t post;
     ffop_tostring_t tostring;
+    ffop_finalize_t finalize;
 } ffop_descriptor_t;
 
 

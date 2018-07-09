@@ -14,11 +14,17 @@
 
 /* datatypes */
 #define FFINT32             0
+#define FFINT32_CTYPE       int32
 #define FFINT64             1
+#define FFINT64_CTYPE       int64
 #define FFDOUBLE            2
+#define FFDOUBLE_CTYPE      double
 #define FFFLOAT             3
+#define FFFLOAT_CTYPE       float
 #define FFCHAR              4
+#define FFCHAR_CTYPE        char
 #define FFDATATYPE_SENTINEL 5
+
 
 /* operators */
 #define FFSUM               0
@@ -30,9 +36,11 @@
 #define FFCUSTOM            6
 
 /* options */
-#define FFOP_DEP_AND        0x002
-#define FFOP_DEP_OR         0x004
-#define FFOP_NON_PERSISTENT 0x008
+#define FFOP_DEP_AND        0x001
+#define FFOP_DEP_OR         0x002
+#define FFOP_NON_PERSISTENT 0x003
+#define FFCOMP_DEST_ATOMIC  0x004
+
 
 /* Our NULL */
 #define FFNONE              -1
@@ -72,6 +80,7 @@ int ffschedule_add_op(ffschedule_h sched, ffop_h op);
 int ffschedule_post(ffschedule_h sched);
 int ffschedule_wait(ffschedule_h handle);
 int ffschedule_test(ffschedule_h handle, int * flag);
+int ffschedule_set_tmpmem(ffschedule_h handle, void * mem);
 
 
 int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h ffoperator, ffdatatype_h datatype, ffschedule_h * _sched);

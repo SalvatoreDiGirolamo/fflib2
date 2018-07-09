@@ -1,5 +1,7 @@
 #include "ffcollectives.h"
 
+#define TMPMEM(MEM, TYPE, BSIZE, OFF) (void *) &(((uint8_t *) MEM)[(BSIZE*OFF)])
+
 int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h operator, ffdatatype_h datatype, ffschedule_h * _sched){
  
     ffschedule_h sched;
@@ -11,6 +13,16 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
     int maxr = (int)ceil((log2(p)));
     int vpeer, vrank, peer, root=0;
 
+    size_t unitsize;
+    ffdatatype_size(datatype, &unitsize);
+
+    RANK2VRANK(rank, vrank, root);
+
+    int nchild = ceil(log(vrank==0 ? p : vrank));
+    
+    void * tmpmem = malloc(nchild*count*unitsize);
+    ffschedule_set_tmpmem(sched, tmpmem);
+
     //TODO: MAKE COLLECTIVE TAG
 
     // reduce part 
@@ -18,7 +30,11 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
     ffnop(0, &send_up);
 
 
-    RANK2VRANK(rank, vrank, root);
+
+    ffop_h move;
+    ffcomp(sndbuff, NULL, count, datatype, FFIDENTITY, 0, rcvbuff, &move);
+
+    ffop_h comp=FFNONE, recv=FFNONE;
 
     for(int r=1; r<=maxr; r++) {
         if((vrank % (1<<r)) == 0) {
@@ -27,16 +43,19 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
             VRANK2RANK(peer, vpeer, root)
 
             if(peer<p) {
-                ffop_h recv, comp;
 
+                FFLOG("nchild: %i; tmpmem: %p; r: %i; peer: %i; count: %i; unitsize: %lu\n", nchild, TMPMEM(tmpmem, datatype, count*unitsize, r), r, peer, count, unitsize);
                 //Receive from the peer
-                ffrecv(rcvbuff, count, datatype, peer, tag, 0, &recv); 
+                ffrecv(TMPMEM(tmpmem, datatype, count*unitsize, r), count, datatype, peer, tag, 0, &recv); 
 
-                //Aggregate the new data TODO: MAKE ATOMIC OPERATORS!
-                ffcomp(sndbuff, rcvbuff, count, datatype, operator, 0, sndbuff, &comp); 
+                //accumulate
+                ffcomp(TMPMEM(tmpmem, datatype, count*unitsize, r), rcvbuff, count, datatype, operator, FFCOMP_DEST_ATOMIC, rcvbuff, &comp); 
 
                 //we need to receive before start computing
                 ffop_hb(recv, comp);
+
+                //wait for the rcvbuff (our accumulator) to be ready before sending
+                ffop_hb(move, comp);
 
                 //we need to compute everything before sending
                 ffop_hb(comp, send_up);
@@ -52,7 +71,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
             VRANK2RANK(peer, vpeer, root)
 
             //send
-            ffsend(sndbuff, count, datatype, peer, tag, 0, &send);
+            ffsend(rcvbuff, count, datatype, peer, tag, 0, &send);
     
             //receive & reduce data from children before sending it up
             ffop_hb(send_up, send);
@@ -62,12 +81,14 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
             break;
         }
     }
-    
+ 
+    if (recv==FFNONE) ffop_hb(move, send_up); 
+    ffschedule_add_op(sched, move);
 
     // broadcast
     RANK2VRANK(rank, vrank, root);
 
-    ffop_h recv = FFNONE;
+    recv = FFNONE;
     ffop_h recv_before_send;
     ffnop(0, &recv_before_send);
 
@@ -89,12 +110,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
 
     // at the root we need to wait to receive before sending down
     if (recv == FFNONE) {
-        ffop_h move;
         ffop_hb(send_up, recv_before_send);
-        
-        // also copy the sndbuff that we use as accumulator in the rcvbuff
-        ffcomp(sndbuff, sndbuff, count, datatype, FFIDENTITY, 0, rcvbuff, &move);
-        ffop_hb(send_up, move);
     }
 
     // now send to the right hosts 
@@ -105,7 +121,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
             ffop_h send;
     
             //send
-            ffsend(sndbuff, count, datatype, peer, tag, 0, &send);
+            ffsend(rcvbuff, count, datatype, peer, tag, 0, &send);
 
             ffop_hb(recv_before_send, send);
 

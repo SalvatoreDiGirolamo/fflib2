@@ -15,6 +15,7 @@ int ffsend(void * buffer, int count, ffdatatype_h datatype, int dest, int tag,
     op->send.peer = dest;
     op->send.tag = tag;
 
+    ffop_mem_init(&(op->send.buffer));
     op->send.buffer.count = count;
     op->send.buffer.datatype = datatype;
 
@@ -41,4 +42,8 @@ int ffsend_tostring(ffop_t * op, char * str, int len){
 }
 
 
+int ffsend_finalize(ffop_t * op){
 
+    ffop_mem_finalize(&(op->send.buffer));
+    return FFSUCCESS;
+}

@@ -75,6 +75,7 @@ int ffop_wait(ffop_h _op){
         }
     }
 
+    op->instance.completed = 0;
     //FFLOG("Wait on %p finished: version: %u; posted version: %u; completed version: %u\n", op, op->version, op->instance.posted_version, op->instance.completed_version);
     return FFSUCCESS;
 }
@@ -82,7 +83,13 @@ int ffop_wait(ffop_h _op){
 int ffop_test(ffop_h _op, int * flag){
     ffop_t * op = (ffop_t *) _op;
 
-    return FFOP_IS_COMPLETED(op);
+    *flag = FFOP_IS_COMPLETED(op);
+
+    if (*flag){
+        op->instance.completed=0;
+    }
+    return FFSUCCESS;
+
 }
 
 
@@ -136,8 +143,11 @@ int ffop_create(ffop_t ** ptr){
 int ffop_complete(ffop_t * op){
 
     FFLOG("completing op %lu\n", op->id);
+
+    // increment version && restore dep_left, so the op can be reused
     __sync_fetch_and_add(&(op->version), 1);
-    
+    op->instance.dep_left = op->in_dep_count; 
+   
     for (int i=0; i<op->out_dep_count; i++){
         ffop_t * dep_op = op->dependent[i];
 

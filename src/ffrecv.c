@@ -14,7 +14,8 @@ int ffrecv(void * buffer, int count, ffdatatype_h datatype, int source, int tag,
 
     op->recv.peer = source;
     op->recv.tag = tag;
-    
+ 
+    ffop_mem_init(&(op->recv.buffer));   
     op->recv.buffer.count = count;
     op->recv.buffer.datatype = datatype;
 
@@ -37,5 +38,11 @@ int ffrecv(void * buffer, int count, ffdatatype_h datatype, int source, int tag,
 
 int ffrecv_tostring(ffop_t * op, char * str, int len){
     snprintf(str, len, "R.%lu(%i)", op->id, op->recv.peer); 
+    return FFSUCCESS;
+}
+
+
+int ffrecv_finalize(ffop_t * op){
+    ffop_mem_finalize(&(op->recv.buffer));
     return FFSUCCESS;
 }

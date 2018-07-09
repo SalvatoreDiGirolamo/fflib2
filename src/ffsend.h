@@ -21,4 +21,7 @@ int ffsend_post(ffop_t * op, ffop_mem_set_t * mem);
 
 int ffsend_tostring(ffop_t * op, char * str, int len);
 
+int ffsend_finalize(ffop_t * op);
+
+
 #endif /* _FFSEND_H_ */

@@ -16,15 +16,19 @@ int ffcomp(void * buff1, void * buff2, int count, ffdatatype_h datatype, ffopera
 
     op->type = FFCOMP;
     op->options &= options; 
-       
+
+    ffop_mem_init(&(op->comp.buffer1));  
     op->comp.buffer1.count = count;
     op->comp.buffer1.datatype = datatype;
     
+    ffop_mem_init(&(op->comp.buffer2));  
     op->comp.buffer2.count = count;
     op->comp.buffer2.datatype = datatype;
 
+    ffop_mem_init(&(op->comp.buffer3));  
     op->comp.buffer3.count = count;
     op->comp.buffer3.datatype = datatype;
+
 
     if (options & FFOP_MEM_IDX == FFOP_MEM_IDX){
         op->comp.buffer1.type = FFOP_MEM_IDX;
@@ -65,4 +69,12 @@ int ffcomp_tostring(ffop_t * op, char * str, int len){
     return FFSUCCESS;
 }
 
+
+int ffcomp_finalize(ffop_t * op){
+    ffop_mem_finalize(&(op->comp.buffer1));
+    ffop_mem_finalize(&(op->comp.buffer2));
+    ffop_mem_finalize(&(op->comp.buffer3));
+
+    return FFSUCCESS;
+}
 
