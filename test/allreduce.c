@@ -33,7 +33,7 @@ int main(int argc, char * argv[]){
     ffallreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, &allreduce);
 
     MPI_Barrier(MPI_COMM_WORLD); //not needed, just for having nice output
-    for (int i=0; i<N && !failed; i++){
+    for (int i=0; i<N; i++){
         
         for (int j=0; j<count; j++){
             to_reduce[j] = i+j;

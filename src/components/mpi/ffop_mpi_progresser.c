@@ -34,6 +34,7 @@ int ffop_mpi_progresser_track(ffop_t * op, MPI_Request req){
 
     uint32_t idx = ffarman_get(&index_manager);
 
+    //printf("getting idx: %i\n", idx);
     if (idx<0){
         FFLOG_ERROR("Too many in-flight MPI operations! (check FFMPI_MAX_REQ)");
         return FFENOMEM;
@@ -48,7 +49,6 @@ int ffop_mpi_progresser_track(ffop_t * op, MPI_Request req){
 int ffop_mpi_progresser_release(uint32_t idx){
 
     ffarman_put(&index_manager, idx);
-    
     requests[idx] = MPI_REQUEST_NULL;
     posted_ops[idx] = NULL;
 
@@ -72,7 +72,6 @@ int ffop_mpi_progresser_progress(ffop_t ** ready_list){
         ffop_t * readyop = posted_ops[ready_indices[i]];
 
         /* mark the operation as complete */ 
-        FFOP_COMPLETED(readyop);
         FFOP_ENQUEUE(readyop, ready_list);
 
         ffop_mpi_progresser_release(ready_indices[i]);

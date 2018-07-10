@@ -1,4 +1,5 @@
 #include "ffcollectives.h"
+#include <assert.h>
 
 #define TMPMEM(MEM, TYPE, BSIZE, OFF) (void *) &(((uint8_t *) MEM)[((BSIZE)*(OFF))])
 
@@ -18,7 +19,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
 
     RANK2VRANK(rank, vrank, root);
 
-    int nchild = ceil(log(vrank==0 ? p : vrank));
+    int nchild = ceil(log(vrank==0 ? p : vrank)) + 1;
     
     void * tmpmem = malloc(nchild*count*unitsize);
     ffschedule_set_tmpmem(sched, tmpmem);
@@ -45,9 +46,12 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
             if(peer<p) {
 
                 FFLOG("nchild: %i; tmpmem: %p; r: %i; peer: %i; count: %i; unitsize: %lu\n", nchild, TMPMEM(tmpmem, datatype, count*unitsize, r-1), r, peer, count, unitsize);
+
+                assert(nchild > r-1);
+
                 //Receive from the peer
                 ffrecv(TMPMEM(tmpmem, datatype, count*unitsize, r-1), count, datatype, peer, tag, 0, &recv); 
-
+             
                 //accumulate
                 ffcomp(TMPMEM(tmpmem, datatype, count*unitsize, r-1), rcvbuff, count, datatype, operator, FFCOMP_DEST_ATOMIC, rcvbuff, &comp); 
 

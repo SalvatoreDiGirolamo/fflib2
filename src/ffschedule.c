@@ -60,12 +60,13 @@ int ffschedule_add_op(ffschedule_h schedh, ffop_h oph){
 
 int ffschedule_post(ffschedule_h handle){
     ffschedule_t * sched = (ffschedule_t *) handle; 
+    FFLOG("Posting schedule %lu\n", sched->id);
     return ffop_post((ffop_h) sched->begin_op);
 }
 
 int ffschedule_wait(ffschedule_h handle){
     ffschedule_t * sched = (ffschedule_t *) handle; 
-    FFLOG("Waiting on schedule %lu (end_op: %p)\n", sched->id, sched->end_op);
+    FFLOG("Waiting on schedule %lu (end_op: %lu)\n", sched->id, sched->end_op->id);
     return ffop_wait((ffop_h) sched->end_op);
 }
 

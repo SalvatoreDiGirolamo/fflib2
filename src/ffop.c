@@ -43,7 +43,10 @@ int ffop_post(ffop_h _op){
 #endif
 
 #ifdef ARGS_CHECK
-    if (op->type<0 || op->type>FFMAX_IDX) return FFINVALID_ARG;
+    if (op->type<0 || op->type>FFMAX_IDX) {
+        FFLOG("Invalid arg: op->type: %u\n", op->type);
+        return FFINVALID_ARG;
+    }
 #endif
 
     if (op->version>0 && IS_OPT_SET(op, FFOP_NON_PERSISTENT)){
@@ -53,11 +56,12 @@ int ffop_post(ffop_h _op){
 
     op->instance.completed = 0;
 
+    FFLOG("Posting op %lu\n", op->id);
     //__sync_fetch_and_add(&(op->instance.posted_version), 1);
     res = ff.impl.ops[op->type].post(op, NULL);
 
     /* check if the operation has been immediately completed */
-    if (FFOP_IS_COMPLETED(op)){ ffop_complete(op); }
+    if (res==FFCOMPLETED){ ffop_complete(op); }
     
     return res;
 }
@@ -147,7 +151,8 @@ int ffop_complete(ffop_t * op){
     // increment version && restore dep_left, so the op can be reused
     __sync_fetch_and_add(&(op->version), 1);
     op->instance.dep_left = op->in_dep_count; 
-   
+    __sync_add_and_fetch(&(op->instance.completed), 1);
+
     for (int i=0; i<op->out_dep_count; i++){
         ffop_t * dep_op = op->dependent[i];
 

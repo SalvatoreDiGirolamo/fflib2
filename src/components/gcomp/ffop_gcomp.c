@@ -43,7 +43,7 @@ int ffop_gcomp_post(ffop_t * op, ffop_mem_set_t * mem){
     }
 
 
-    if (res==FFSUCCESS){ FFOP_COMPLETED(op); }   
+    if (res==FFSUCCESS){ return FFCOMPLETED; }   
 
     return res;
 }

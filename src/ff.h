@@ -1,6 +1,7 @@
 #ifndef _FF_H_
 #define _FF_H_
 
+#define FFCOMPLETED 1
 #define FFSUCCESS 0
 #define FFERROR -1
 #define FFINVALID_ARG -2

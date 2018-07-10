@@ -10,9 +10,6 @@
     *oplist = op; \
 }
 
-#define FFOP_COMPLETED(op){ \
-    __sync_add_and_fetch(&(op->instance.completed), 1); \
-} 
 
 //#define FFOP_IS_COMPLETED(op) (op->instance.posted_version > op->version && op->instance.completed_version == op->instance.posted_version)
 

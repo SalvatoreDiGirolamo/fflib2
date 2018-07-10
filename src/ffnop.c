@@ -14,8 +14,7 @@ int ffnop(int options, ffop_h * _op){
 }
 
 int ffnop_post(ffop_t * op, ffop_mem_set_t * mem){
-    FFOP_COMPLETED(op);
-    return FFSUCCESS;
+    return FFCOMPLETED;
 }
 
 int ffnop_tostring(ffop_t * op, char * str, int len){
