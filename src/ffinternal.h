@@ -14,7 +14,9 @@
 #define FFCALL(X) { int r; if (r=(X)!=FFSUCCESS) return r; }
 #define FFCALLV(X, V) { int r; if (r=(X)!=FFSUCCESS) return V; }
 
-#define FFLOG_ERROR(MSG) { printf("FFlib error: %s\n", MSG); }
+//#define FFLOG_ERROR(MSG, ...) { printf("FFlib error: %s"MSG, ## __VA_ARGS__); }
+
+#define FFLOG_ERROR(MSG, ...) { printf("[%u][%s:%i] "MSG, getpid(), __FILE__, __LINE__,  ##__VA_ARGS__); }
 
 #define IS_OPT_SET(op, opt) (op->options & opt == opt)
 
