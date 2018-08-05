@@ -13,7 +13,7 @@ int ffnop(int options, ffop_h * _op){
     return FFSUCCESS;
 }
 
-int ffnop_post(ffop_t * op, ffop_mem_set_t * mem){
+int ffnop_post(ffop_t * op, ffbuffer_set_t * mem){
     return FFCOMPLETED;
 }
 

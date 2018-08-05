@@ -15,17 +15,17 @@ int ffsend(void * buffer, int count, ffdatatype_h datatype, int dest, int tag,
     op->send.peer = dest;
     op->send.tag = tag;
 
-    ffop_mem_init(&(op->send.buffer));
+    ffbuffer_init(&(op->send.buffer));
     op->send.buffer.count = count;
     op->send.buffer.datatype = datatype;
 
     FFLOG("FFSEND ID: %lu; dest: %i; count: %i; datatype: %i; tag: %i; options: %i\n", op->id, dest, count, datatype, tag, options);
 
-    if (options & FFOP_MEM_IDX == FFOP_MEM_IDX){
-        op->send.buffer.type = FFOP_MEM_IDX;
+    if (options & FFBUFFER_IDX == FFBUFFER_IDX){
+        op->send.buffer.type = FFBUFFER_IDX;
         op->send.buffer.idx = *((uint32_t *) buffer);
     }else{
-        op->send.buffer.type = FFOP_MEM_PTR;
+        op->send.buffer.type = FFBUFFER_PTR;
         op->send.buffer.ptr = buffer;
     }
 
@@ -44,6 +44,6 @@ int ffsend_tostring(ffop_t * op, char * str, int len){
 
 int ffsend_finalize(ffop_t * op){
 
-    ffop_mem_finalize(&(op->send.buffer));
+    ffbuffer_finalize(&(op->send.buffer));
     return FFSUCCESS;
 }

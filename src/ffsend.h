@@ -3,12 +3,12 @@
 
 #include "ff.h"
 #include "ffinternal.h"
-#include "ffop_mem.h"
+#include "ffbuffer.h"
 #include "ffbind.h"
 
 typedef struct ffsend{    
     ffpeer_t peer;
-    ffop_mem_t buffer;
+    ffbuffer_t buffer;
     uint32_t tag;
     uint8_t flags;
 
@@ -17,7 +17,7 @@ typedef struct ffsend{
 
 } ffsend_t;
 
-int ffsend_post(ffop_t * op, ffop_mem_set_t * mem);
+int ffsend_post(ffop_t * op, ffbuffer_set_t * mem);
 
 int ffsend_tostring(ffop_t * op, char * str, int len);
 

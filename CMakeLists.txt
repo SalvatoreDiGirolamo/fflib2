@@ -17,8 +17,8 @@ src/ff.h
 src/ffinternal.h
 src/ffop.c
 src/ffop.h
-src/ffop_mem.h
-src/ffop_mem.c
+src/ffbuffer.h
+src/ffbuffer.c
 src/ffcomp.c
 src/ffcomp.h
 src/ffprogress.c

@@ -1,13 +1,13 @@
-#include "ffop_mem.h"
+#include "ffbuffer.h"
 
 
-int ffop_mem_init(ffop_mem_t * mem){
+int ffbuffer_init(ffbuffer_t * mem){
     FFLOCK_INIT(&(mem->lock));   
     return FFSUCCESS;
 }
 
 
-int ffop_mem_finalize(ffop_mem_t * mem){
+int ffbuffer_finalize(ffbuffer_t * mem){
     FFLOCK_DESTROY(&(mem->lock));
     return FFSUCCESS;
 }

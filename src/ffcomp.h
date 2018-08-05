@@ -3,13 +3,13 @@
 
 #include "ff.h"
 #include "ffinternal.h"
-#include "ffop_mem.h"
+#include "ffbuffer.h"
 #include "ffbind.h"
 
 typedef struct ffcomp{
-    ffop_mem_t buffer1;
-    ffop_mem_t buffer2;
-    ffop_mem_t buffer3;
+    ffbuffer_t buffer1;
+    ffbuffer_t buffer2;
+    ffbuffer_t buffer3;
 
     ffoperator_h operator_type; 
 

@@ -15,17 +15,17 @@ int ffrecv(void * buffer, int count, ffdatatype_h datatype, int source, int tag,
     op->recv.peer = source;
     op->recv.tag = tag;
  
-    ffop_mem_init(&(op->recv.buffer));   
+    ffbuffer_init(&(op->recv.buffer));   
     op->recv.buffer.count = count;
     op->recv.buffer.datatype = datatype;
 
     FFLOG("FFRECV ID: %lu; source: %i; count: %i; datatype: %i; tag: %i; options: %i\n", op->id, source, count, datatype, tag, options);
 
-    if (options & FFOP_MEM_IDX == FFOP_MEM_IDX){
-        op->recv.buffer.type = FFOP_MEM_IDX;
+    if (options & FFBUFFER_IDX == FFBUFFER_IDX){
+        op->recv.buffer.type = FFBUFFER_IDX;
         op->recv.buffer.idx = *((uint32_t *) buffer);
     }else{
-        op->recv.buffer.type = FFOP_MEM_PTR;
+        op->recv.buffer.type = FFBUFFER_PTR;
         op->recv.buffer.ptr = buffer;
     }
  
@@ -43,6 +43,6 @@ int ffrecv_tostring(ffop_t * op, char * str, int len){
 
 
 int ffrecv_finalize(ffop_t * op){
-    ffop_mem_finalize(&(op->recv.buffer));
+    ffbuffer_finalize(&(op->recv.buffer));
     return FFSUCCESS;
 }
