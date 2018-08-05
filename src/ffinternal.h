@@ -1,6 +1,9 @@
 #ifndef _FFINTERNAL_
 #define _FFINTERNAL_
 
+#define FFPROGRESS_THREAD
+//#define WAIT_COND
+
 #include "ff.h"
 #include "ffdatatype.h"
 #include "fflocks.h"
@@ -64,7 +67,9 @@ typedef int (*ffimpl_operator_delete_t)(ffoperator_h);
 /* Operation descriptor */
 typedef int (*ffop_post_t)(ffop_t*, ffop_mem_set_t*);
 typedef int (*ffop_init_t)(ffop_t*);
-typedef int (*ffop_tostring_t)(ffop_t*, char * str, int len);
+typedef int (*ffop_test_t)(ffop_t*, int*);
+typedef int (*ffop_wait_t)(ffop_t*);
+typedef int (*ffop_tostring_t)(ffop_t*, char *, int);
 typedef int (*ffop_finalize_t)(ffop_t*);
 
 typedef struct ffop_descriptor{
@@ -72,6 +77,8 @@ typedef struct ffop_descriptor{
     ffop_post_t post;
     ffop_tostring_t tostring;
     ffop_finalize_t finalize;
+    ffop_wait_t wait;
+    ffop_test_t test;
 } ffop_descriptor_t;
 
 

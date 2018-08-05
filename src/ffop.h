@@ -3,7 +3,7 @@
 
 #define MAX_DEPS 10
 
-#define FFPOLLS_BEFORE_YIELD 1000
+#define FFPOLLS_BEFORE_YIELD 5
 
 #define FFOP_ENQUEUE(op, oplist) { \
     op->instance.next = *oplist; \
@@ -75,6 +75,12 @@ struct ffop{
         /* completion flag */
         volatile uint8_t completed;
     } instance;
+
+#ifdef WAIT_COND
+    FFMUTEX_TYPE mutex;
+    FFCOND_TYPE cond;
+#endif
+
 };
 
 int ffop_init();

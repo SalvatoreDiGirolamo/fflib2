@@ -26,3 +26,14 @@ int ffop_mpi_recv_post(ffop_t * op, ffop_mem_set_t * mem){
     return ffop_mpi_progresser_track(op, recv->transport.mpireq);
 }
 
+int ffop_mpi_recv_wait(ffop_t * op){
+    MPI_Wait(&(op->recv.transport.mpireq), MPI_STATUS_IGNORE);
+    return FFSUCCESS;
+}
+
+int ffop_mpi_recv_test(ffop_t * op, int * flag){
+    MPI_Test(&(op->recv.transport.mpireq), flag, MPI_STATUS_IGNORE);
+    return FFSUCCESS;
+}
+
+

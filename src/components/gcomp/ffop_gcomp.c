@@ -12,7 +12,7 @@ int ffop_gcomp_init(ffop_t * op){
 int ffop_gcomp_post(ffop_t * op, ffop_mem_set_t * mem){
     
     ffcomp_t * comp = &(op->comp);
-    
+
 #ifdef CHECK_ARGS
     if (op==NULL || op->type!=FFCOMP) {
         FFLOG_ERROR("Invalid argument!");
@@ -48,3 +48,12 @@ int ffop_gcomp_post(ffop_t * op, ffop_mem_set_t * mem){
     return res;
 }
 
+
+int ffop_gcomp_wait(ffop_t * op){
+    return FFSUCCESS;
+}
+
+int ffop_gcomp_test(ffop_t * op, int * flag){
+    *flag = 1;
+    return FFSUCCESS;
+}

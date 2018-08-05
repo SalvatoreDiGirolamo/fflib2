@@ -67,11 +67,19 @@ int ffschedule_post(ffschedule_h handle){
 int ffschedule_wait(ffschedule_h handle){
     ffschedule_t * sched = (ffschedule_t *) handle; 
     FFLOG("Waiting on schedule %lu (end_op: %lu)\n", sched->id, sched->end_op->id);
+#ifndef FFPROGRESS_THREAD
+    FFLOG_ERROR("Not implemented (FFPROGRESS_THREAD not defined)!\n");
+    exit(1);
+#endif
     return ffop_wait((ffop_h) sched->end_op);
 }
 
 int ffschedule_test(ffschedule_h handle, int * flag){
     ffschedule_t * sched = (ffschedule_t *) handle; 
+#ifndef FFPROGRESS_THREAD
+    FFLOG_ERROR("Not implemented (FFPROGRESS_THREAD not defined)!\n");
+    exit(1);
+#endif
     return ffop_test((ffop_h) sched->end_op, flag);
 }
 

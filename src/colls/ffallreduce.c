@@ -3,6 +3,9 @@
 
 #define TMPMEM(MEM, TYPE, BSIZE, OFF) (void *) &(((uint8_t *) MEM)[((BSIZE)*(OFF))])
 
+//#define FFALLREDYCE_REDUCE_BCAST
+
+#ifdef FFALLREDUCE_REDUCE_BCAST
 int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h operator, ffdatatype_h datatype, ffschedule_h * _sched){
  
     ffschedule_h sched;
@@ -141,3 +144,80 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
     return FFSUCCESS;
 }
 
+
+#else
+//Recursive doubling
+int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h operator, ffdatatype_h datatype, ffschedule_h * _sched){
+
+    ffschedule_h sched;
+    FFCALL(ffschedule_create(&sched));
+
+    int csize, rank;
+    ffsize(&csize);
+    ffrank(&rank);
+
+    int mask = 0x1;
+    int maxr = (int)ceil((log2(csize)));
+
+    size_t unitsize;
+    ffdatatype_size(datatype, &unitsize);
+
+    FFLOG("allocating mem %lu (maxr = %u)\n", (maxr)*count*unitsize, maxr+1);
+    void * tmpmem = malloc(maxr*count*unitsize);
+    ffschedule_set_tmpmem(sched, tmpmem);
+
+    ffop_h move;
+    ffcomp(sndbuff, NULL, count, datatype, FFIDENTITY, FFCOMP_DEST_ATOMIC, rcvbuff, &move);
+
+    ffop_h send=FFNONE, recv=FFNONE, prev_send=FFNONE, comp=FFNONE;
+    uint32_t r=0;
+
+    while (mask < csize) {
+        uint32_t dst = rank^mask;
+        if (dst < csize) {
+
+            ffsend(rcvbuff, count, datatype, dst, tag, 0, &send);
+
+            if (comp==FFNONE){
+                //first send --> only wait for the move
+                ffop_hb(move, send);
+            }else{
+                //before sending we have to wait for the computation
+                ffop_hb(comp, send);
+            }
+
+            //a send has to wait on all prev computations as well.. here 
+            //we just serialize the sends to avoid too many deps.
+            if (prev_send != FFNONE){
+                ffop_hb(prev_send, send);
+            }
+            prev_send = send;            
+
+            ffschedule_add_op(sched, send);
+
+            //receive from the peer
+            ffrecv(TMPMEM(tmpmem, datatype, count*unitsize, r), count, 
+                    datatype, dst, tag, 0, &recv); 
+             
+            //accumulate
+            ffcomp(TMPMEM(tmpmem, datatype, count*unitsize, r), rcvbuff, count, 
+                    datatype, operator, FFCOMP_DEST_ATOMIC, rcvbuff, &comp); 
+
+            //comp has to wait the receive to happen
+            ffop_hb(recv, comp);
+    
+            ffschedule_add_op(sched, recv);
+            ffschedule_add_op(sched, comp);   
+            
+            r++; 
+        }
+        mask <<= 1;
+    }
+
+    ffschedule_add_op(sched, move);
+
+    *_sched = sched;
+    return FFSUCCESS;
+}
+
+#endif

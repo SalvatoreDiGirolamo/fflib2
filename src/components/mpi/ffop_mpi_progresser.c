@@ -32,6 +32,7 @@ int ffop_mpi_progresser_finalize(){
 
 int ffop_mpi_progresser_track(ffop_t * op, MPI_Request req){
 
+#ifdef FFPROGRESS_THREAD
     uint32_t idx = ffarman_get(&index_manager);
 
     //printf("getting idx: %i\n", idx);
@@ -42,19 +43,18 @@ int ffop_mpi_progresser_track(ffop_t * op, MPI_Request req){
 
     posted_ops[idx] = op;
     requests[idx] = req;
-    
+#endif
     return FFSUCCESS;
 }
 
 int ffop_mpi_progresser_release(uint32_t idx){
-
+#ifdef FFPROGRESS_THREAD
     ffarman_put(&index_manager, idx);
     requests[idx] = MPI_REQUEST_NULL;
     posted_ops[idx] = NULL;
-
+#endif 
     return FFSUCCESS;
 }
-
 
 
 int ffop_mpi_progresser_progress(ffop_t ** ready_list){
@@ -62,6 +62,7 @@ int ffop_mpi_progresser_progress(ffop_t ** ready_list){
     int outcount, res;
     int ready_indices[FFMPI_MAX_REQ];
     res = MPI_Testsome(FFMPI_MAX_REQ, requests, &outcount, ready_indices, MPI_STATUS_IGNORE);
+    //res = MPI_Waitsome(FFMPI_MAX_REQ, requests, &outcount, ready_indices, MPI_STATUS_IGNORE);
 
     if (res!=MPI_SUCCESS) {
         FFLOG_ERROR("MPI_Testsome returned with error!");

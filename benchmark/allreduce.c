@@ -66,8 +66,8 @@ int main(int argc, char * argv[]){
             MPI_Allreduce(to_reduce, reduced, count, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
             LSB_Rec(i);
         } else {
-            LSB_Res();
             ffschedule_post(allreduce);
+            LSB_Res();
             ffschedule_wait(allreduce);
             LSB_Rec(i);
         }
@@ -76,12 +76,12 @@ int main(int argc, char * argv[]){
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Barrier(MPI_COMM_WORLD);
 
-        for (int j=0; j<count; j++){
+        /*for (int j=0; j<count; j++){
             if (reduced[j] != (i+j)*size){
                 //printf("FAILED!\n");
                 failed=1;
             }
-        }
+        }*/
     
         MPI_Allreduce(&failed, &gfailed, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
         if (gfailed>0) break;

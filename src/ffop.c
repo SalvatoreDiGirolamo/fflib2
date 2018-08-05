@@ -25,6 +25,13 @@ int ffop_finalize(){
 
 int ffop_free(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
+    //FIXME one should create/destroy the mutex/cond only when
+    //the op is created for the first time and freed for the last time
+    //(i.e., by the pool).
+#ifdef WAIT_COND
+    FFMUTEX_DESTROY(op->mutex);
+    FFCOND_DESTROY(op->cond);
+#endif
     return ffstorage_pool_put(op);
 }
 
@@ -69,7 +76,16 @@ int ffop_post(ffop_h _op){
 int ffop_wait(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
 
+    FFLOG("Waiting op %lu\n", op->id);
+
+#ifdef FFPROGRESS_THREAD
     uint32_t polls=0;
+
+#ifdef WAIT_COND
+    while (!FFOP_IS_COMPLETED(op)){
+        FFCOND_WAIT(op->cond, op->mutex);
+    }
+#else
     while (!FFOP_IS_COMPLETED(op)){
         if (polls >= FFPOLLS_BEFORE_YIELD){
             polls=0;
@@ -78,22 +94,33 @@ int ffop_wait(ffop_h _op){
             polls++;
         }
     }
-
+#endif
     op->instance.completed = 0;
+
     //FFLOG("Wait on %p finished: version: %u; posted version: %u; completed version: %u\n", op, op->version, op->instance.posted_version, op->instance.completed_version);
     return FFSUCCESS;
+#else
+    ff.impl.ops[op->type].wait(op); //FIXME: check this return value
+    return ffop_complete(op);
+#endif
 }
 
 int ffop_test(ffop_h _op, int * flag){
     ffop_t * op = (ffop_t *) _op;
-
+#ifdef FFPROGRESS_THREAD
     *flag = FFOP_IS_COMPLETED(op);
 
     if (*flag){
         op->instance.completed=0;
     }
     return FFSUCCESS;
-
+#else
+    ff.impl.ops[op->type].test(op, flag); //FIXME: check this return value
+    if (*flag){
+        return ffop_complete(op);
+    }
+    return FFSUCCESS;
+#endif
 }
 
 
@@ -141,6 +168,11 @@ int ffop_create(ffop_t ** ptr){
     //op->instance.completed_version  = 0;
     op->instance.completed          = 0;
 
+#ifdef WAIT_COND
+    FFMUTEX_INIT(op->mutex);
+    FFCOND_INIT(op->cond);
+#endif
+
     return FFSUCCESS;
 }
 
@@ -152,6 +184,10 @@ int ffop_complete(ffop_t * op){
     __sync_fetch_and_add(&(op->version), 1);
     op->instance.dep_left = op->in_dep_count; 
     __sync_add_and_fetch(&(op->instance.completed), 1);
+
+#ifdef WAIT_COND
+    FFCOND_SIGNAL(op->cond, op->mutex);
+#endif
 
     for (int i=0; i<op->out_dep_count; i++){
         ffop_t * dep_op = op->dependent[i];
