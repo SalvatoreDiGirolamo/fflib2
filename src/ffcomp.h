@@ -7,9 +7,9 @@
 #include "ffbind.h"
 
 typedef struct ffcomp{
-    ffbuffer_t buffer1;
-    ffbuffer_t buffer2;
-    ffbuffer_t buffer3;
+    ffbuffer_t * buffer1;
+    ffbuffer_t * buffer2;
+    ffbuffer_t * buffer3;
 
     ffoperator_h operator_type; 
 

@@ -21,7 +21,7 @@
 
 #define FFLOG_ERROR(MSG, ...) { printf("[%u][%s:%i] "MSG, getpid(), __FILE__, __LINE__,  ##__VA_ARGS__); }
 
-#define IS_OPT_SET(op, opt) (op->options & opt == opt)
+#define IS_OPT_SET(op, opt) (((op->options) & opt) == opt)
 
 #ifdef FFDEBUG
 extern int dbg_myrank;

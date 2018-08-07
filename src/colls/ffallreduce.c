@@ -33,8 +33,6 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
     ffop_h send_up;
     ffnop(0, &send_up);
 
-
-
     ffop_h move;
     ffcomp(sndbuff, NULL, count, datatype, FFIDENTITY, 0, rcvbuff, &move);
 
@@ -162,50 +160,55 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
     size_t unitsize;
     ffdatatype_size(datatype, &unitsize);
 
-    FFLOG("allocating mem %lu (maxr = %u)\n", (maxr)*count*unitsize, maxr+1);
-    void * tmpmem = malloc(maxr*count*unitsize);
-    ffschedule_set_tmpmem(sched, tmpmem);
+    FFLOG("allocating mem %lu (maxr = %u)\n", (maxr)*count*unitsize, maxr);
+    //void * tmpmem = malloc(maxr*count*unitsize);
+    
+    ffbuffer_h * tmpbuffs = (ffbuffer_h *) malloc(sizeof(ffbuffer_h)*(maxr+2));
+
+    for (int i=0; i<maxr; i++){
+        ffbuffer_create(NULL, count, datatype, 0, &(tmpbuffs[i]));
+    }
+
+    ffbuffer_create(sndbuff, count, datatype, 0, &(tmpbuffs[maxr]));
+    ffbuffer_create(rcvbuff, count, datatype, 0, &(tmpbuffs[maxr+1]));
+
+    ffbuffer_h sb = tmpbuffs[maxr];
+    ffbuffer_h rb = tmpbuffs[maxr+1];
+    
+    ffschedule_set_tmp_buffers(sched, tmpbuffs, maxr+2);
 
     ffop_h move;
-    ffcomp(sndbuff, NULL, count, datatype, FFIDENTITY, FFCOMP_DEST_ATOMIC, rcvbuff, &move);
+    //ffcomp(sndbuff, NULL, count, datatype, FFIDENTITY, FFCOMP_DEST_ATOMIC, rcvbuff, &move);
+    ffcomp_b(sb, FFBUFF_NONE, FFIDENTITY, FFCOMP_DEST_ATOMIC, rb, &move);
 
     ffop_h send=FFNONE, recv=FFNONE, prev_send=FFNONE, comp=FFNONE;
     uint32_t r=0;
 
+    comp = move;
     while (mask < csize) {
         uint32_t dst = rank^mask;
         if (dst < csize) {
 
-            ffsend(rcvbuff, count, datatype, dst, tag, 0, &send);
+            assert(r<maxr);
 
-            if (comp==FFNONE){
-                //first send --> only wait for the move
-                ffop_hb(move, send);
-            }else{
-                //before sending we have to wait for the computation
-                ffop_hb(comp, send);
-            }
+            ffsend_b(rb, dst, datatype, 0, &send);  
 
-            //a send has to wait on all prev computations as well.. here 
-            //we just serialize the sends to avoid too many deps.
-            if (prev_send != FFNONE){
-                ffop_hb(prev_send, send);
-            }
+            //before sending we have to wait for the computation (or move)
+            ffop_hb(comp, send);
+
+            ffrecv_b(tmpbuffs[r], dst, tag, 0, &recv);            
+ 
+            //accumulate
+            ffcomp_b(tmpbuffs[r], rb, operator, FFCOMP_DEST_ATOMIC, rb, &comp);    
+
+            //the next comp has to wait this send (they share the buffer)
+            ffop_hb(send, comp);
             prev_send = send;            
+    
+            //comp has to wait the receive to happen
+            ffop_hb(recv, comp);    
 
             ffschedule_add_op(sched, send);
-
-            //receive from the peer
-            ffrecv(TMPMEM(tmpmem, datatype, count*unitsize, r), count, 
-                    datatype, dst, tag, 0, &recv); 
-             
-            //accumulate
-            ffcomp(TMPMEM(tmpmem, datatype, count*unitsize, r), rcvbuff, count, 
-                    datatype, operator, FFCOMP_DEST_ATOMIC, rcvbuff, &comp); 
-
-            //comp has to wait the receive to happen
-            ffop_hb(recv, comp);
-    
             ffschedule_add_op(sched, recv);
             ffschedule_add_op(sched, comp);   
             

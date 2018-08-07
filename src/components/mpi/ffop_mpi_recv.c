@@ -18,8 +18,9 @@ int ffop_mpi_recv_post(ffop_t * op, ffbuffer_set_t * mem){
     void * buffer;
     GETBUFFER(recv->buffer, mem, buffer);
 
-    res = MPI_Irecv(buffer, recv->buffer.count, 
-            datatype_translation_table[recv->buffer.datatype], recv->peer, 
+    FFLOG("MPI_Irecv buffer: %p\n", buffer);
+    res = MPI_Irecv(buffer, recv->buffer->count, 
+            datatype_translation_table[recv->buffer->datatype], recv->peer, 
             recv->tag, MPI_COMM_WORLD, &(recv->transport.mpireq));
 
     if (res!=MPI_SUCCESS) return FFERROR;

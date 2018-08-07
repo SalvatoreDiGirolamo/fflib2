@@ -21,7 +21,8 @@ int ffschedule_create(ffschedule_h * handle){
     ffstorage_pool_get(schedule_pool, (void **) sched);
     (*sched)->oplist = NULL;
     (*sched)->id = schedid++;   
-    (*sched)->tmpmem = NULL;
+    (*sched)->tmp_buffers = NULL;
+    (*sched)->tmp_buffers_num = 0;
 
     ffnop(0, (ffop_h *) &((*sched)->begin_op));
     ffnop(0, (ffop_h *) &((*sched)->end_op));
@@ -32,7 +33,11 @@ int ffschedule_create(ffschedule_h * handle){
 int ffschedule_delete(ffschedule_h handle){
     ffschedule_t * sched = (ffschedule_t *) handle; 
 
-    if (sched->tmpmem != NULL) free(sched->tmpmem);
+    if (sched->tmp_buffers != NULL) {
+        for (int i=0; i<sched->tmp_buffers_num; i++){
+            ffbuffer_delete(sched->tmp_buffers[i]);
+        }
+    }
     return ffstorage_pool_put(sched);
 }
 
@@ -84,10 +89,11 @@ int ffschedule_test(ffschedule_h handle, int * flag){
 }
 
 
-int ffschedule_set_tmpmem(ffschedule_h handle, void * mem){
+int ffschedule_set_tmp_buffers(ffschedule_h handle, ffbuffer_h * mem, int len){
     ffschedule_t * sched = (ffschedule_t *) handle; 
     if (sched==NULL || mem==NULL) return FFINVALID_ARG;
-    sched->tmpmem = mem;
+    sched->tmp_buffers = mem;
+    sched->tmp_buffers_num = len;
     return FFSUCCESS;
 }
 

@@ -6,6 +6,7 @@
 #include "ffprogress.h"
 #include "ffinternal.h"
 #include "ffschedule.h"
+#include "ffbuffer.h"
 
 #ifdef FFDEBUG
 #include <sys/types.h>
@@ -40,6 +41,7 @@ int ffinit(int * argc, char *** argv){
     ff.impl.ops[FFCOMP].finalize = ffcomp_finalize;
 
     ffstorage_init();
+    ffbuffer_init();
     ffop_init();
     ffschedule_init();
 
@@ -76,6 +78,7 @@ int fffinalize(){
 
     ff.impl.finalize(); 
     ffop_finalize();
+    ffbuffer_finalize();
     ffstorage_finalize();
   
     return FFSUCCESS;

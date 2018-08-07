@@ -34,12 +34,12 @@ int main(int argc, char * argv[]){
 
     MPI_Barrier(MPI_COMM_WORLD); //not needed, just for having nice output
     for (int i=0; i<N; i++){
-        
+            
         for (int j=0; j<count; j++){
             to_reduce[j] = i+j;
             reduced[j] = 0;
         }
-
+        
         ffschedule_post(allreduce);
         ffschedule_wait(allreduce);
 

@@ -8,7 +8,7 @@
 
 typedef struct ffrecv{    
     ffpeer_t peer;
-    ffbuffer_t buffer;
+    ffbuffer_t * buffer;
     uint32_t tag;
     uint8_t flags;
 

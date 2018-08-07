@@ -21,8 +21,8 @@ int ffop_mpi_send_post(ffop_t * op, ffbuffer_set_t * mem){
     void * buffer;
     GETBUFFER(send->buffer, mem, buffer)
 
-    res = MPI_Isend(buffer, send->buffer.count, 
-            datatype_translation_table[send->buffer.datatype], send->peer, 
+    res = MPI_Isend(buffer, send->buffer->count, 
+            datatype_translation_table[send->buffer->datatype], send->peer, 
             send->tag, MPI_COMM_WORLD, &(send->transport.mpireq));
 
     if (res!=MPI_SUCCESS) {

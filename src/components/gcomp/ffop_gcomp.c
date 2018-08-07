@@ -13,6 +13,7 @@ int ffop_gcomp_post(ffop_t * op, ffbuffer_set_t * mem){
     
     ffcomp_t * comp = &(op->comp);
 
+    FFLOG("Posting COMP %lu options: %u\n", op->id, op->options);
 #ifdef CHECK_ARGS
     if (op==NULL || op->type!=FFCOMP) {
         FFLOG_ERROR("Invalid argument!");
@@ -25,21 +26,36 @@ int ffop_gcomp_post(ffop_t * op, ffbuffer_set_t * mem){
 #endif
 
     void *buffer1, *buffer2, *buffer3;
-    GETBUFFER(comp->buffer1, mem, buffer1);
-    GETBUFFER(comp->buffer2, mem, buffer2);
-    GETBUFFER(comp->buffer3, mem, buffer3);
+    uint32_t buff1_count, buff2_count, buff3_count;
 
-    if (IS_OPT_SET(op, FFCOMP_DEST_ATOMIC)){
-        FFLOCK_LOCK(&(comp->buffer3.lock));
+    GETBUFFER(comp->buffer1, mem, buffer1);
+    buff1_count = comp->buffer1->count;
+
+    //buffer2 is optional for some operators
+    if (comp->buffer2!=FFBUFF_NONE) {
+        GETBUFFER(comp->buffer2, mem, buffer2);
+        buff2_count = comp->buffer2->count;
+    }else {
+        buffer2 = NULL;
+        buff2_count = buff1_count; //to fool the min below
     }
 
-    uint32_t size = MIN(comp->buffer1.count, comp->buffer2.count, comp->buffer3.count);
-    ffdatatype_h datatype = comp->buffer1.datatype; // they are the same
+    GETBUFFER(comp->buffer3, mem, buffer3);
+    buff3_count = comp->buffer3->count;
+
+    if (IS_OPT_SET(op, FFCOMP_DEST_ATOMIC)){
+        FFLOG("locking %p\n", &(comp->buffer3->lock));
+        FFLOCK_LOCK(&(comp->buffer3->lock));
+    }
+
+    uint32_t size = MIN(buff1_count, buff2_count, buff3_count);
+    ffdatatype_h datatype = comp->buffer1->datatype; // they are the same
 
     int res = comp->operator.op_fun(buffer1, buffer2, buffer3, size, datatype);
 
     if (IS_OPT_SET(op, FFCOMP_DEST_ATOMIC)){
-        FFLOCK_UNLOCK(&(comp->buffer3.lock));
+        FFLOG("unlocking %p\n", &(comp->buffer3->lock));
+        FFLOCK_UNLOCK(&(comp->buffer3->lock));
     }
 
 
