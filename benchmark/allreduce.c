@@ -40,6 +40,7 @@ int main(int argc, char * argv[]){
     LSB_Set_Rparam_int("rank", rank);
     LSB_Set_Rparam_int("comm_size", size);
     LSB_Set_Rparam_int("msg_size", count*sizeof(int32_t));
+    LSB_Set_Rparam_string("lib", argv[2]);
 
     LSB_Set_Rparam_string("type", "schedule_creation");
     LSB_Res();
