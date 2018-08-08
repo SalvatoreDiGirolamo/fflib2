@@ -13,13 +13,23 @@ static ffop_gcomp_operator_t operators[FFOPERATOR_SENTINEL];
 static ffop_gcomp_operator_t custom_operators[FFMAX_CUSTOM_OPERATORS];
 static ffarman_t custom_idx;
 
+#define BLOCK 1024
+
 int ffop_gcomp_operator_sum(void * a, void * b, void* c, uint32_t size, ffdatatype_h type){
     switch (type){
-        case FFINT32: 
+        case FFINT32:{ 
             FFLOG("(a: %p; b: %p; c: %p; a[1]: %i; b[1]: %i; c[1]: %i; size: %u)!\n", a, b, c, ((int32_t *)a)[1], ((int32_t *)b)[1], ((int32_t *)c)[1], size);
-            SUM(int32_t, a, b, c, size);
+
+            uint32_t to_reduce = size; 
+            while (to_reduce > BLOCK){
+                SUM(int32_t, a, b, c, BLOCK);
+                to_reduce -= BLOCK;
+            }
+            SUM(int32_t, a, b, c, to_reduce);
+
             FFLOG("(a: %p; b: %p; c: %p; a[1]: %i; b[1]: %i; c[1]: %i; size: %u)!\n", a, b, c, ((int32_t *)a)[1], ((int32_t *)b)[1], ((int32_t *)c)[1], size);
             break;
+        }
         case FFINT64:
             SUM(int64_t, a, b, c, size);
             break;
