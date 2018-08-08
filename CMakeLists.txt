@@ -66,6 +66,7 @@ target_include_directories(fflib PRIVATE src)
 target_link_libraries(fflib ${MPI_LIBRARIES})
 
 set(CMAKE_C_FLAGS_DEBUG "-DFFDEBUG -g")
+set(CMAKE_C_FLAGS "-O3 -ftree-vectorize")
 
 install(TARGETS fflib
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
