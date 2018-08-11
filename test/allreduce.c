@@ -30,7 +30,7 @@ int main(int argc, char * argv[]){
     int failed=0;
     
     ffschedule_h allreduce;
-    ffallreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, &allreduce);
+    ffallreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, &allreduce);
 
     MPI_Barrier(MPI_COMM_WORLD); //not needed, just for having nice output
     for (int i=0; i<N; i++){

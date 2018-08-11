@@ -10,8 +10,10 @@ typedef struct ffschedule{
     ffop_t * begin_op;
     ffop_t * end_op;
     uint64_t id;
-    ffbuffer_h * tmp_buffers;
-    uint32_t tmp_buffers_num;
+    void * state;
+
+    ffschedule_post_callback_t post_callback;
+    ffschedule_delete_callback_t delete_callback;
 } ffschedule_t;
 
 

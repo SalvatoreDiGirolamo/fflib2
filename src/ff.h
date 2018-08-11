@@ -43,6 +43,7 @@
 #define FFCOMP_DEST_ATOMIC  (1 << 4)
 #define FFBUFFER_PTR        (1 << 5)
 #define FFBUFFER_IDX        (1 << 6)
+#define FFCOLL_BUFFERS      (1 << 7)
 
 /* Our NULL */
 #define FFNONE              -1
@@ -53,6 +54,9 @@ typedef int ffoperator_h;
 typedef uint64_t ffop_h;
 typedef uint64_t ffschedule_h;
 typedef uint64_t ffbuffer_h;
+
+typedef int (*ffschedule_post_callback_t)(ffschedule_h sched);
+typedef int (*ffschedule_delete_callback_t)(ffschedule_h sched);
 
 int ffinit(int * argc, char *** argv);
 int fffinalize();
@@ -69,6 +73,8 @@ int ffop_tostring(ffop_h op, char * str, int len);
 
 int ffbuffer_create(void * addr, uint32_t count, ffdatatype_h datatype, int options, ffbuffer_h * _ffbuff);
 int ffbuffer_delete(ffbuffer_h ffbuff);
+int ffbuffer_resize(ffbuffer_h handle, uint32_t count, ffdatatype_h datatype);
+int ffbuffer_get_size(ffbuffer_h handle, uint32_t * count, ffdatatype_h * datatype);
 
 int ffsend(void * addr, int count, ffdatatype_h datatype, int dest, int tag, int options, ffop_h * op);
 int ffsend_b(ffbuffer_h buffer, int dest, int tag, int options, ffop_h *_op);
@@ -90,9 +96,11 @@ int ffschedule_add_op(ffschedule_h sched, ffop_h op);
 int ffschedule_post(ffschedule_h sched);
 int ffschedule_wait(ffschedule_h handle);
 int ffschedule_test(ffschedule_h handle, int * flag);
-int ffschedule_set_tmp_buffers(ffschedule_h handle, ffbuffer_h * buffers, int len);
+int ffschedule_set_state(ffschedule_h handle, void * state);
+int ffschedule_get_state(ffschedule_h handle, void ** state);
+int ffschedule_set_post_callback(ffschedule_h handle, ffschedule_post_callback_t cb);
+int ffschedule_set_delete_callback(ffschedule_h handle, ffschedule_delete_callback_t cb);
 
-
-int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h ffoperator, ffdatatype_h datatype, ffschedule_h * _sched);
+int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h ffoperator, ffdatatype_h datatype, int options, ffschedule_h * _sched);
 
 #endif /* _FF_H_ */

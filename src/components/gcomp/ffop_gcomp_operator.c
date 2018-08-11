@@ -15,7 +15,7 @@
 }
 
 #define VSUM(TYPE, A, B, C, SIZE)       \
-{                                   \
+{                                       \
     uint32_t to_reduce = SIZE;          \
     while (to_reduce >= BLOCK){         \
         SUM(TYPE, A, B, C, BLOCK);      \
@@ -35,7 +35,7 @@ int ffop_gcomp_operator_sum(void * a, void * b, void* c, uint32_t size, ffdataty
         case FFINT32:{ 
             FFLOG("(a: %p; b: %p; c: %p; a[1]: %i; b[1]: %i; c[1]: %i; size: %u)!\n", a, b, c, ((int32_t *)a)[1], ((int32_t *)b)[1], ((int32_t *)c)[1], size);
 
-            VSUM(int32_t, a, b, c, to_reduce);
+            VSUM(int32_t, a, b, c, size);
 
             FFLOG("(a: %p; b: %p; c: %p; a[1]: %i; b[1]: %i; c[1]: %i; size: %u)!\n", a, b, c, ((int32_t *)a)[1], ((int32_t *)b)[1], ((int32_t *)c)[1], size);
             break;
@@ -60,11 +60,9 @@ int ffop_gcomp_operator_sum(void * a, void * b, void* c, uint32_t size, ffdataty
 
 int ffop_gcomp_operator_copy(void * a, void * b, void* c, uint32_t size, ffdatatype_h type){
     size_t unitsize;
-    FFLOG("COPYING %u x %lu from %p to %p\n", size, unitsize, a, c);
     ffdatatype_size(type, &unitsize);
-
+    FFLOG("COPYING %u x %lu from %p to %p\n", size, unitsize, a, c);
     memcpy(c, a, size*unitsize);
-
     return FFSUCCESS;
 }
 

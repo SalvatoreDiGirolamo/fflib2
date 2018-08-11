@@ -44,7 +44,7 @@ int main(int argc, char * argv[]){
 
     LSB_Set_Rparam_string("type", "schedule_creation");
     LSB_Res();
-    ffallreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, &allreduce);
+    ffallreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, &allreduce);
     LSB_Rec(0);
 
 

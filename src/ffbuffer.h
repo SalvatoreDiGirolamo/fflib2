@@ -40,7 +40,7 @@ typedef struct ffbuffer{
 
     uint32_t count;
     ffdatatype_t datatype;
-
+    int options;
 } ffbuffer_t;
 
 typedef struct ffbuffer_set{

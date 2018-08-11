@@ -17,12 +17,15 @@ int ffschedule_init(){
 
 
 int ffschedule_create(ffschedule_h * handle){
-    ffschedule_t ** sched = (ffschedule_t **) handle; 
+    ffschedule_t ** sched       = (ffschedule_t **) handle; 
     ffstorage_pool_get(schedule_pool, (void **) sched);
-    (*sched)->oplist = NULL;
-    (*sched)->id = schedid++;   
-    (*sched)->tmp_buffers = NULL;
-    (*sched)->tmp_buffers_num = 0;
+
+    (*sched)->oplist            = NULL;
+    (*sched)->id                = schedid++;   
+    (*sched)->state             = NULL;
+
+    (*sched)->post_callback     = NULL;
+    (*sched)->delete_callback   = NULL;
 
     ffnop(0, (ffop_h *) &((*sched)->begin_op));
     ffnop(0, (ffop_h *) &((*sched)->end_op));
@@ -32,13 +35,32 @@ int ffschedule_create(ffschedule_h * handle){
 
 int ffschedule_delete(ffschedule_h handle){
     ffschedule_t * sched = (ffschedule_t *) handle; 
-
-    if (sched->tmp_buffers != NULL) {
-        for (int i=0; i<sched->tmp_buffers_num; i++){
-            ffbuffer_delete(sched->tmp_buffers[i]);
-        }
-    }
+    if (sched->delete_callback!=NULL) sched->delete_callback(handle);
     return ffstorage_pool_put(sched);
+}
+
+int ffschedule_set_state(ffschedule_h handle, void * state){
+    ffschedule_t * sched = (ffschedule_t *) handle; 
+    sched->state = state;
+    return FFSUCCESS;
+}
+
+int ffschedule_get_state(ffschedule_h handle, void ** state){
+    ffschedule_t * sched = (ffschedule_t *) handle; 
+    *state = sched->state;
+    return FFSUCCESS;
+}
+
+int ffschedule_set_post_callback(ffschedule_h handle, ffschedule_post_callback_t cb){
+    ffschedule_t * sched = (ffschedule_t *) handle; 
+    sched->post_callback = cb;
+    return FFSUCCESS;
+}
+
+int ffschedule_set_delete_callback(ffschedule_h handle, ffschedule_delete_callback_t cb){
+    ffschedule_t * sched = (ffschedule_t *) handle; 
+    sched->delete_callback = cb;
+    return FFSUCCESS;
 }
 
 int ffschedule_add_op(ffschedule_h schedh, ffop_h oph){
@@ -66,6 +88,7 @@ int ffschedule_add_op(ffschedule_h schedh, ffop_h oph){
 int ffschedule_post(ffschedule_h handle){
     ffschedule_t * sched = (ffschedule_t *) handle; 
     FFLOG("Posting schedule %lu\n", sched->id);
+    if (sched->post_callback!=NULL) sched->post_callback(handle);
     return ffop_post((ffop_h) sched->begin_op);
 }
 
@@ -86,14 +109,5 @@ int ffschedule_test(ffschedule_h handle, int * flag){
     exit(1);
 #endif
     return ffop_test((ffop_h) sched->end_op, flag);
-}
-
-
-int ffschedule_set_tmp_buffers(ffschedule_h handle, ffbuffer_h * mem, int len){
-    ffschedule_t * sched = (ffschedule_t *) handle; 
-    if (sched==NULL || mem==NULL) return FFINVALID_ARG;
-    sched->tmp_buffers = mem;
-    sched->tmp_buffers_num = len;
-    return FFSUCCESS;
 }
 
