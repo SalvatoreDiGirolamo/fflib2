@@ -14,14 +14,14 @@
     }                                                       \
 }
 
-#define VSUM(TYPE, A, B, C, SIZE)       \
-{                                       \
-    uint32_t to_reduce = SIZE;          \
-    while (to_reduce >= BLOCK){         \
-        SUM(TYPE, A, B, C, BLOCK);      \
-        to_reduce -= BLOCK;             \
-    }                                   \
-    SUM(TYPE, A, B, C, to_reduce);      \
+#define VSUM(TYPE, A, B, C, SIZE)                                                                                           \
+{                                                                                                                           \
+    uint32_t to_reduce = SIZE;                                                                                              \
+    while (to_reduce >= BLOCK){                                                                                             \
+        SUM(TYPE, &(((TYPE *) A)[SIZE-to_reduce]), &(((TYPE *)B)[SIZE-to_reduce]), &(((TYPE *) C)[SIZE-to_reduce]), BLOCK); \
+        to_reduce -= BLOCK;                                                                                                 \
+    }                                                                                                                       \
+    SUM(TYPE, &(((TYPE *)A)[SIZE-to_reduce]), &(((TYPE *)B)[SIZE-to_reduce]), &(((TYPE *)C)[SIZE-to_reduce]), to_reduce);   \
 }
 
 
