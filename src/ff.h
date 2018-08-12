@@ -48,6 +48,7 @@
 /* Our NULL */
 #define FFNONE              -1
 #define FFBUFF_NONE         0x0
+#define FFINPLACE           ((void *) 0x1)
 
 typedef int ffdatatype_h;
 typedef int ffoperator_h;

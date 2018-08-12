@@ -13,6 +13,7 @@ set(TEST_C_SRCS
   custom_computation
   ping_pong_schedule
   allreduce
+  allreduce_inplace
 )
 
 set(TEST_CPP_SRCS
