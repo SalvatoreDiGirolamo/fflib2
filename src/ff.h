@@ -24,7 +24,8 @@
 #define FFFLOAT_CTYPE       float
 #define FFCHAR              4
 #define FFCHAR_CTYPE        char
-#define FFDATATYPE_SENTINEL 5
+#define FFDATATYPE_NONE     5
+#define FFDATATYPE_SENTINEL 6
 
 
 /* operators */
@@ -74,8 +75,9 @@ int ffop_tostring(ffop_h op, char * str, int len);
 
 int ffbuffer_create(void * addr, uint32_t count, ffdatatype_h datatype, int options, ffbuffer_h * _ffbuff);
 int ffbuffer_delete(ffbuffer_h ffbuff);
-int ffbuffer_resize(ffbuffer_h handle, uint32_t count, ffdatatype_h datatype);
+int ffbuffer_resize(ffbuffer_h handle, void * addr, uint32_t new_count, ffdatatype_h new_datatype);
 int ffbuffer_get_size(ffbuffer_h handle, uint32_t * count, ffdatatype_h * datatype);
+int ffbuffer_get_data(ffbuffer_h handle, void ** mem);
 
 int ffsend(void * addr, int count, ffdatatype_h datatype, int dest, int tag, int options, ffop_h * op);
 int ffsend_b(ffbuffer_h buffer, int dest, int tag, int options, ffop_h *_op);

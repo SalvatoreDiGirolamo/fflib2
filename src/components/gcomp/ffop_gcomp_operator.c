@@ -33,11 +33,11 @@ static ffarman_t custom_idx;
 int ffop_gcomp_operator_sum(void * a, void * b, void* c, uint32_t size, ffdatatype_h type){
     switch (type){
         case FFINT32:{ 
-            FFLOG("(a: %p; b: %p; c: %p; a[1]: %i; b[1]: %i; c[1]: %i; size: %u)!\n", a, b, c, ((int32_t *)a)[1], ((int32_t *)b)[1], ((int32_t *)c)[1], size);
+            FFLOG("(a: %p; b: %p; c: %p; a[1]: %i; b[1]: %i; c[1]: %i; size: %u)!\n", a, b, c, ((int32_t *)a)[0], ((int32_t *)b)[0], ((int32_t *)c)[0], size);
 
             VSUM(int32_t, a, b, c, size);
 
-            FFLOG("(a: %p; b: %p; c: %p; a[1]: %i; b[1]: %i; c[1]: %i; size: %u)!\n", a, b, c, ((int32_t *)a)[1], ((int32_t *)b)[1], ((int32_t *)c)[1], size);
+            FFLOG("(a: %p; b: %p; c: %p; a[1]: %i; b[1]: %i; c[1]: %i; size: %u)!\n", a, b, c, ((int32_t *)a)[0], ((int32_t *)b)[0], ((int32_t *)c)[0], size);
             break;
         }
         case FFINT64:

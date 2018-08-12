@@ -16,6 +16,9 @@ int ffbuffer_create(void * addr, uint32_t count, ffdatatype_h datatype, int opti
 
     ffbuff->options = options;
     ffbuff->selfalloc = selfalloc;
+    ffbuff->count = count;
+    ffbuff->ptr = addr;
+    ffbuff->datatype = datatype;
 
     if ((options & FFBUFFER_IDX) == FFBUFFER_IDX){  
         assert(!selfalloc);
@@ -25,19 +28,24 @@ int ffbuffer_create(void * addr, uint32_t count, ffdatatype_h datatype, int opti
     }else{ 
         FFLOG("Creating PTR buffer!\n");
         ffbuff->type = FFBUFFER_PTR;
-        ffbuff->ptr = addr;
+        ffbuff->datatype = FFDATATYPE_NONE;
 
-        if (ffbuff->ptr==NULL && ffbuffer_resize(*_ffbuff, count, datatype) != FFSUCCESS){
+        if (ffbuffer_resize(*_ffbuff, addr, count, datatype) != FFSUCCESS){
             ffstorage_pool_put(_ffbuff);
             return FFENOMEM;
         }
     }
 
-    ffbuff->count = count;
-    ffbuff->datatype = datatype;
-
     FFLOCK_INIT(&(ffbuff->lock));   
  
+    return FFSUCCESS;
+}
+
+int ffbuffer_get_data(ffbuffer_h handle, void ** mem){
+    ffbuffer_t * ffbuff = (ffbuffer_t *) handle;    
+    assert((ffbuff->options && FFBUFFER_IDX) != FFBUFFER_IDX);
+    assert(ffbuff->ptr!=NULL);
+    *mem = ffbuff->ptr;
     return FFSUCCESS;
 }
 
@@ -55,17 +63,33 @@ int ffbuffer_get_size(ffbuffer_h handle, uint32_t * count, ffdatatype_h * dataty
     return FFSUCCESS;
 }
 
-int ffbuffer_resize(ffbuffer_h handle, uint32_t count, ffdatatype_h datatype){
+int ffbuffer_resize(ffbuffer_h handle, void * addr, uint32_t new_count, ffdatatype_h new_datatype){
     ffbuffer_t * ffbuff = (ffbuffer_t *) handle;    
     assert((ffbuff->options && FFBUFFER_IDX) != FFBUFFER_IDX);
 
-    size_t unitsize;
-    ffdatatype_size(datatype, &unitsize);
-    FFLOG("Resizing buffers (addr: %p; size: %lu)\n", ffbuff->ptr, unitsize*count);
-    ffbuff->ptr = realloc(ffbuff->ptr, unitsize*count);
-    if (ffbuff->ptr==NULL) {
-        return FFENOMEM;
+    size_t new_unitsize, old_unitsize;
+    ffdatatype_size(new_datatype, &new_unitsize);
+    ffdatatype_size(ffbuff->datatype, &old_unitsize);
+    FFLOG("Resizing buffers (addr: %p; size: %lu)\n", ffbuff->ptr, new_unitsize*new_count);
+
+    if (addr==NULL){
+        if (ffbuff->ptr==NULL || new_count * new_unitsize > ffbuff->count*old_unitsize){
+            FFLOG("Realloc from %lu to %lu\n", old_unitsize * ffbuff->count, new_unitsize * new_count);
+            ffbuff->ptr = realloc(ffbuff->ptr, new_unitsize*new_count);
+            if (ffbuff->ptr==NULL) { return FFENOMEM; }
+        }
+    }else{
+        FFLOG("Setting new buffer address to %p\n", addr);
+        if (ffbuff->selfalloc) {
+            FFLOG("Freeing old buffer address (selfalloc)");
+            free(ffbuff->ptr);
+        }
+        ffbuff->ptr = addr;
     }
+
+    ffbuff->count = new_count;
+    ffbuff->datatype = new_datatype;
+
     return FFSUCCESS;
 }
 

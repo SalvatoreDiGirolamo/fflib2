@@ -42,7 +42,7 @@ int ffallreduce_post_check(ffschedule_h sched){
     if (rb_count > state->count){
         FFLOG("Resizing temp buffers!\n");
         for (int i=0; i<state->tmpbuffs_count; i++){
-            ffbuffer_resize(state->tmpbuffs[i], rb_count, rb_type);
+            ffbuffer_resize(state->tmpbuffs[i], NULL, rb_count, rb_type);
         }
         state->count = rb_count;
     }
@@ -82,12 +82,10 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
     int mask = 0x1;
     int maxr = (int)ceil((log2(csize)));
     int in_place = sndbuff == FFINPLACE;
+    int buffers_provided = ((options & FFCOLL_BUFFERS) == FFCOLL_BUFFERS);
 
     size_t unitsize;
     ffdatatype_size(datatype, &unitsize);
-
-    FFLOG("allocating mem %lu (maxr = %u)\n", (maxr)*count*unitsize, maxr);
-    //void * tmpmem = malloc(maxr*count*unitsize);
 
     allreduce_state_t * state = (allreduce_state_t *) malloc(sizeof(allreduce_state_t));
    
@@ -99,11 +97,13 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
     state->datatype = datatype;
     state->count = count;
 
-    if ((options & FFCOLL_BUFFERS) == FFCOLL_BUFFERS){
-        FFLOG("Buffers are provided by the users\n");
-        state->sndbuff = *((ffbuffer_h *) sndbuff);
+    if (buffers_provided){
+        FFLOG("Buffers are provided by the user\n");
+        if (!in_place) state->sndbuff = *((ffbuffer_h *) sndbuff);
+        else state->sndbuff = FFBUFF_NONE;
         state->rcvbuff = *((ffbuffer_h *) rcvbuff);
         state->free_sr_buff = 0;
+        ffschedule_set_post_callback(sched, ffallreduce_post_check);
     }else{
         FFLOG("Allocating buffers\n");
         if (!in_place) ffbuffer_create(sndbuff, count, datatype, 0, &(state->sndbuff));
@@ -123,7 +123,6 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
     }
 
     ffschedule_set_state(sched, (void *) state);
-    ffschedule_set_post_callback(sched, ffallreduce_post_check);
     ffschedule_set_delete_callback(sched, ffallreduce_free);
 
     ffop_h send=FFNONE, recv=FFNONE, prev_send=FFNONE, comp=FFNONE;

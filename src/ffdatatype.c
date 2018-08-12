@@ -16,6 +16,9 @@ int ffdatatype_size(ffdatatype_h datatype, size_t * size){
         case FFFLOAT:
             unitsize = sizeof(float);
             break;
+        case FFDATATYPE_NONE:
+            unitsize = 0;
+            break;
         default:
             FFLOG_ERROR("Operator not found!\n");
             return FFINVALID_ARG;         
