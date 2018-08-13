@@ -43,7 +43,7 @@ int main(int argc, char * argv[]){
     MPI_Barrier(MPI_COMM_WORLD); //not needed, just for having nice output
     for (int i=0; i<N; i++){
         
-        int count = (rand() + 1) % max_count;
+        int count = (rand() % max_count) + 1;
         to_reduce = (int32_t *) malloc(sizeof(int32_t)*count);
         reduced = (int32_t *) malloc(sizeof(int32_t)*count);
         ffbuffer_resize(sndbuff, to_reduce, count, FFINT32);
