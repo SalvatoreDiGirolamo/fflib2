@@ -4,6 +4,9 @@
 
 #include "ff.h"
 
+#define FFTYPE FFLOAT
+#define CTYPE  float
+
 #define FFCALL(X) { int ret; if (ret=(X)!=FFSUCCESS) { printf("Error: %i\n", ret); exit(-1); } }
 
 #define N 100
@@ -28,21 +31,21 @@ int main(int argc, char * argv[]){
 
     ffbuffer_h rcvbuff;
 
-    ffbuffer_create(NULL, INITIAL_COUNT, FFINT32, 0, &rcvbuff);
+    ffbuffer_create(NULL, INITIAL_COUNT, FFFLOAT, 0, &rcvbuff);
     
     int failed=0;
         
-    int32_t *reduced;
+    CTYPE *reduced;
     
     ffschedule_h allreduce;
-    ffallreduce(FFINPLACE, &rcvbuff, INITIAL_COUNT, 0, FFSUM, FFINT32, FFCOLL_BUFFERS, &allreduce);
+    ffallreduce(FFINPLACE, &rcvbuff, INITIAL_COUNT, 0, FFSUM, FFFLOAT, FFCOLL_BUFFERS, &allreduce);
     
     srand(SEED);
     MPI_Barrier(MPI_COMM_WORLD); //not needed, just for having nice output
     for (int i=0; i<N; i++){
         
         int count = (rand() % max_count) + 1;
-        ffbuffer_resize(rcvbuff, NULL, count, FFINT32);
+        ffbuffer_resize(rcvbuff, NULL, count, FFFLOAT);
         ffbuffer_get_data(rcvbuff, (void **) &reduced);
 
         for (int j=0; j<count; j++){
@@ -54,7 +57,7 @@ int main(int argc, char * argv[]){
 
         for (int j=0; j<count; j++){
             if (reduced[j] != (i+j)*size){
-                printf("[rank %i] FAILED! (i: %i; j: %i) (expected: %u; got: %u; csize: %u)\n", rank, i, j, (i+j)*size, reduced[j], size);
+                printf("[rank %i] FAILED! (i: %i; j: %i) (expected: %u; got: %lf; csize: %u)\n", rank, i, j, (i+j)*size, (double) reduced[j], size);
                 failed=1;
             }
         }

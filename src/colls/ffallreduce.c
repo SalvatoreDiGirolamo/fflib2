@@ -134,7 +134,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
 
             assert(r<maxr);
 
-            ffsend_b(rb, dst, datatype, 0, &send);  
+            ffsend_b(rb, dst, tag, 0, &send);  
 
             //before sending we have to wait for the computation (or move)
             ffop_hb(comp, send);
