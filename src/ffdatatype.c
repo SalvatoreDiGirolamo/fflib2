@@ -3,6 +3,7 @@
 
 int ffdatatype_size(ffdatatype_h datatype, size_t * size){
     size_t unitsize;
+
     switch (datatype){
         case FFINT32: 
             unitsize = sizeof(int32_t);
