@@ -1,8 +1,6 @@
 #ifndef _FFOP_H_
 #define _FFOP_H_
 
-#define MAX_DEPS 10
-
 #define FFPOLLS_BEFORE_YIELD 5
 
 #define FFOP_ENQUEUE(op, oplist) { \
@@ -24,6 +22,8 @@
 
 typedef uint32_t ffop_type_t;
 
+struct ffdep_op;
+
 struct ffop{
     ffop_type_t type;
     
@@ -38,10 +38,9 @@ struct ffop{
     };
 
     /* pointers to operations dependent on this */
-    struct ffop * dependent[MAX_DEPS];
-
-    /* number of dependent operations */
-    uint32_t out_dep_count;
+    struct ffdep_op *dep_next;
+    struct ffdep_op *dep_first;
+    struct ffdep_op *dep_last;
 
     /* number of incoming dependencies (fired when 0) */
     uint32_t in_dep_count;
@@ -82,6 +81,11 @@ struct ffop{
 #endif
 
 };
+
+typedef struct ffdep_op{
+    struct ffop     *op;
+    struct ffdep_op *next;
+} ffdep_op_t;
 
 int ffop_init();
 int ffop_finalize();

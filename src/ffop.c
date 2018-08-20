@@ -6,21 +6,26 @@
 #include <sched.h>
 
 #define INITIAL_FFOP_POOL_COUNT 1024
+#define INITIAL_FFDEP_OP_POOL_COUNT 1024
 
 static pool_h op_pool;
+static pool_h dep_op_pool;
 
 static uint64_t opid = 0;
 
 int ffop_init(){
 
     op_pool = ffstorage_pool_create(sizeof(ffop_t), INITIAL_FFOP_POOL_COUNT);
+    dep_op_pool = ffstorage_pool_create(sizeof(ffdep_op_t), INITIAL_FFDEP_OP_POOL_COUNT);
 
     return FFSUCCESS;
 }
 
 
 int ffop_finalize(){   
-    return ffstorage_pool_destroy(op_pool);
+    ffstorage_pool_destroy(op_pool);
+    ffstorage_pool_destroy(dep_op_pool);
+    return FFSUCCESS;
 }
 
 int ffop_free(ffop_h _op){
@@ -131,17 +136,25 @@ int ffop_hb(ffop_h _first, ffop_h _second){
     if (first==NULL || second==NULL) return FFINVALID_ARG;
 #endif
 
-    uint32_t idx = __sync_fetch_and_add(&(first->out_dep_count), 1);
-
-#ifdef ARGS_CHECK
-    if (idx > MAX_DEPS) return FFTOO_MANY_DEPS;
-#endif
-
     FFLOG("HB: %lu -> %lu\n", first->id, second->id);
 
     FFGRAPH(_first, _second);
+    
+    ffdep_op_t *dep;        
+    ffstorage_pool_get(dep_op_pool, (void **) &dep);
+    dep->op = second;
 
-    first->dependent[idx] = second;
+    if (first->dep_first==NULL){
+        first->dep_first        = dep;
+        first->dep_last         = dep;
+        first->dep_next         = dep;
+        dep->next               = dep;
+    }else{
+        dep->next               = first->dep_first;
+        first->dep_last->next   = dep;
+        first->dep_last         = dep;
+    }
+
     __sync_fetch_and_add(&(second->in_dep_count), 1);
     second->instance.dep_left = second->in_dep_count;
 
@@ -156,11 +169,14 @@ int ffop_create(ffop_t ** ptr){
     ffop_t * op                     = *ptr;
 
     op->id                          = opid++;
-    op->out_dep_count               = 0;
     op->in_dep_count                = 0;
     op->sched_next                  = NULL;
     op->options                     = FFOP_DEP_AND;
     op->version                     = 0;
+
+    op->dep_next                    = NULL;
+    op->dep_first                   = NULL;
+    op->dep_last                    = NULL;
 
     op->instance.next               = NULL;
     op->instance.dep_left           = 0;
@@ -189,24 +205,29 @@ int ffop_complete(ffop_t * op){
     FFCOND_SIGNAL(op->cond, op->mutex);
 #endif
 
-    for (int i=0; i<op->out_dep_count; i++){
-        ffop_t * dep_op = op->dependent[i];
+    if (op->dep_next==NULL) return FFSUCCESS;
+    ffdep_op_t * curr_dep = op->dep_next;
+    
+    do{
+        ffop_t * dep_op = op->dep_next->op;
 
         uint32_t deps = __sync_add_and_fetch(&(dep_op->instance.dep_left), -1);
         FFLOG("Decreasing %lu dependencies by one: now %i\n", dep_op->id, dep_op->instance.dep_left);
 
         int trigger;
         // triggering conditions:
-        // no dependencies left if is an AND dependency OR at least one satisfied if is an OR dep
+        // no dependencies left if is an AND dependency *or* at least one is satisfied if it is an OR dep
         trigger  = deps == 0 || IS_OPT_SET(op, FFOP_DEP_OR); 
-        // the op has not been posted already OR the op is persistent
+        // the op has not been already posted *or* the op is persistent
         trigger &= (op->version==0 || !IS_OPT_SET(op, FFOP_NON_PERSISTENT));
 
         if (trigger){
             FFLOG("All dependencies of %lu are satisfied: posting it!\n", dep_op->id);
             ffop_post((ffop_h) dep_op);
         }
+        
+        op->dep_next = op->dep_next->next;
+    } while (op->dep_next != curr_dep);
 
-    }
     return FFSUCCESS;
 }

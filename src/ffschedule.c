@@ -77,7 +77,7 @@ int ffschedule_add_op(ffschedule_h schedh, ffop_h oph){
         ffop_hb((ffop_h) sched->begin_op, (ffop_h) op);
     }
 
-    if (op->out_dep_count==0){
+    if (op->dep_next==NULL){
         FFLOG("making end_op dependent from op %lu; schedule: %lu\n", op->id, sched->id);
         ffop_hb((ffop_h) op, (ffop_h) sched->end_op);
     }
