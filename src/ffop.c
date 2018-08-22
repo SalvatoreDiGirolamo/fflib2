@@ -66,11 +66,14 @@ int ffop_post(ffop_h _op){
         return FFINVALID_ARG;
     }
 
+
     op->instance.completed = 0;
 
     FFLOG("Posting op %lu\n", op->id);
     //__sync_fetch_and_add(&(op->instance.posted_version), 1);
     res = ff.impl.ops[op->type].post(op, NULL);
+
+    __sync_fetch_and_add(&(op->version), 1);
 
     /* check if the operation has been immediately completed */
     if (res==FFCOMPLETED){ ffop_complete(op); }
@@ -196,8 +199,7 @@ int ffop_complete(ffop_t * op){
 
     FFLOG("completing op %lu\n", op->id);
 
-    // increment version && restore dep_left, so the op can be reused
-    __sync_fetch_and_add(&(op->version), 1);
+    // restore dep_left, so the op can be reused
     op->instance.dep_left = op->in_dep_count; 
     __sync_add_and_fetch(&(op->instance.completed), 1);
 
@@ -210,6 +212,7 @@ int ffop_complete(ffop_t * op){
     
     do{
         ffop_t * dep_op = op->dep_next->op;
+        if (op->version < dep_op->version) continue;
 
         uint32_t deps = __sync_add_and_fetch(&(dep_op->instance.dep_left), -1);
         FFLOG("Decreasing %lu dependencies by one: now %i\n", dep_op->id, dep_op->instance.dep_left);
@@ -219,8 +222,8 @@ int ffop_complete(ffop_t * op){
         // no dependencies left if is an AND dependency *or* at least one is satisfied if it is an OR dep
         trigger  = deps == 0 || IS_OPT_SET(op, FFOP_DEP_OR); 
         // the op has not been already posted *or* the op is persistent
-        trigger &= (op->version==0 || !IS_OPT_SET(op, FFOP_NON_PERSISTENT));
-
+        trigger &= (dep_op->version==0 || !IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT));
+    
         if (trigger){
             FFLOG("All dependencies of %lu are satisfied: posting it!\n", dep_op->id);
             ffop_post((ffop_h) dep_op);
