@@ -1,7 +1,7 @@
 #include "ffrecv.h"
 #include "ffop.h"
 
-int ffrecv(void * addr, int count, ffdatatype_h datatype, int source, int tag, 
+int ffrecv(void * addr, int count, ffdatatype_h datatype, int source, int16_t tag, 
     int options, ffop_h * op){
 
     ffbuffer_h buff;
@@ -10,7 +10,7 @@ int ffrecv(void * addr, int count, ffdatatype_h datatype, int source, int tag,
     return ffrecv_b(buff, source, tag, options, op);   
 }
 
-int ffrecv_b(ffbuffer_h buffer, int source, int tag, int options, ffop_h * _op){
+int ffrecv_b(ffbuffer_h buffer, int source,int16_t tag, int options, ffop_h * _op){
 
     int res; 
     ffop_t * op;
@@ -25,7 +25,7 @@ int ffrecv_b(ffbuffer_h buffer, int source, int tag, int options, ffop_h * _op){
  
     op->recv.buffer = (ffbuffer_t *) buffer;
 
-    FFLOG("FFRECV ID: %lu; source: %i; count: %i; datatype: %i; tag: %i; options: %i\n", op->id, source, op->recv.buffer->count, op->recv.buffer->datatype, tag, options);
+    FFLOG("FFRECV ID: %lu; source: %i; count: %i; datatype: %i; tag: %hd; options: %i\n", op->id, source, op->recv.buffer->count, op->recv.buffer->datatype, tag, options);
 
     /* implementation specific */   
     res = ff.impl.ops[FFRECV].init(op);

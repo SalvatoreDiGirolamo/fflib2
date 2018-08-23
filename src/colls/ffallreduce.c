@@ -70,7 +70,7 @@ int ffallreduce_free(ffschedule_h sched){
 }
 
 //Recursive doubling
-int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h operator, ffdatatype_h datatype, int options, ffschedule_h * _sched){
+int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h operator, ffdatatype_h datatype, int options, ffschedule_h * _sched){
 
     ffschedule_h sched;
     FFCALL(ffschedule_create(&sched));

@@ -1,7 +1,7 @@
 #include "ffsend.h"
 #include "ffop.h"
 
-int ffsend(void * addr, int count, ffdatatype_h datatype, int dest, int tag, 
+int ffsend(void * addr, int count, ffdatatype_h datatype, int dest, int16_t tag, 
     int options, ffop_h * op){
  
     ffbuffer_h buff;
@@ -10,7 +10,7 @@ int ffsend(void * addr, int count, ffdatatype_h datatype, int dest, int tag,
     return ffsend_b(buff, dest, tag, options, op);   
 }
 
-int ffsend_b(ffbuffer_h buffer, int dest, int tag, int options, ffop_h *_op){
+int ffsend_b(ffbuffer_h buffer, int dest, int16_t tag, int options, ffop_h *_op){
 
     int res;   
     ffop_t * op;
@@ -25,7 +25,7 @@ int ffsend_b(ffbuffer_h buffer, int dest, int tag, int options, ffop_h *_op){
 
     op->send.buffer = (ffbuffer_t *) buffer;
 
-    FFLOG("FFSEND ID: %lu; dest: %i; count: %i; datatype: %i; tag: %i; options: %i\n", op->id, dest, op->send.buffer->count, op->send.buffer->datatype, tag, options);
+    FFLOG("FFSEND ID: %lu; dest: %i; count: %i; datatype: %i; tag: %hd; options: %i\n", op->id, dest, op->send.buffer->count, op->send.buffer->datatype, tag, options);
 
     /* implementation specific */
     res = ff.impl.ops[FFSEND].init(op);    

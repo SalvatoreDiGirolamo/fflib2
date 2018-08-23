@@ -9,7 +9,7 @@
 typedef struct ffrecv{    
     ffpeer_t peer;
     ffbuffer_t * buffer;
-    uint32_t tag;
+    uint16_t tag;
     uint8_t flags;
 
     /* transport */

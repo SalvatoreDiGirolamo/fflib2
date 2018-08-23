@@ -79,11 +79,11 @@ int ffbuffer_resize(ffbuffer_h handle, void * addr, uint32_t new_count, ffdataty
 int ffbuffer_get_size(ffbuffer_h handle, uint32_t * count, ffdatatype_h * datatype);
 int ffbuffer_get_data(ffbuffer_h handle, void ** mem);
 
-int ffsend(void * addr, int count, ffdatatype_h datatype, int dest, int tag, int options, ffop_h * op);
-int ffsend_b(ffbuffer_h buffer, int dest, int tag, int options, ffop_h *_op);
+int ffsend(void * addr, int count, ffdatatype_h datatype, int dest, int16_t tag, int options, ffop_h * op);
+int ffsend_b(ffbuffer_h buffer, int dest, int16_t tag, int options, ffop_h *_op);
 
-int ffrecv(void * addr, int count, ffdatatype_h datatype, int source, int tag, int options, ffop_h * op);
-int ffrecv_b(ffbuffer_h, int source, int tag, int options, ffop_h * _op);
+int ffrecv(void * addr, int count, ffdatatype_h datatype, int source, int16_t tag, int options, ffop_h * op);
+int ffrecv_b(ffbuffer_h, int source, int16_t tag, int options, ffop_h * _op);
 
 int ffnop(int options, ffop_h * handle);
 
@@ -104,6 +104,6 @@ int ffschedule_get_state(ffschedule_h handle, void ** state);
 int ffschedule_set_post_callback(ffschedule_h handle, ffschedule_post_callback_t cb);
 int ffschedule_set_delete_callback(ffschedule_h handle, ffschedule_delete_callback_t cb);
 
-int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h ffoperator, ffdatatype_h datatype, int options, ffschedule_h * _sched);
+int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h ffoperator, ffdatatype_h datatype, int options, ffschedule_h * _sched);
 
 #endif /* _FF_H_ */
