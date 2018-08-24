@@ -212,15 +212,18 @@ int ffop_complete(ffop_t * op){
     
     do{
         ffop_t * dep_op = op->dep_next->op;
-        if (op->version < dep_op->version) continue;
+        if (op->version <= dep_op->version) {
+            FFLOG("ffop version mismatch -> dependency not satisfied (%lu.version (dep_op) = %u; %lu.version (op) = %u)\n", dep_op->id, dep_op->version, op->id, op->version);
+            continue;
+        }
 
         uint32_t deps = __sync_add_and_fetch(&(dep_op->instance.dep_left), -1);
-        FFLOG("Decreasing %lu dependencies by one: now %i\n", dep_op->id, dep_op->instance.dep_left);
+        FFLOG("Decreasing %lu dependencies by one: now %i (is OR dep: %u; non-persistent: %u); %lu.version (dep_op) = %u; %lu.version (op) = %u\n", dep_op->id, dep_op->instance.dep_left, (unsigned int) IS_OPT_SET(dep_op, FFOP_DEP_OR), (unsigned int) IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT), dep_op->id, dep_op->version, op->id, op->version);
 
         int trigger;
         // triggering conditions:
         // no dependencies left if is an AND dependency *or* at least one is satisfied if it is an OR dep
-        trigger  = deps == 0 || IS_OPT_SET(op, FFOP_DEP_OR); 
+        trigger  = deps == 0 || IS_OPT_SET(dep_op, FFOP_DEP_OR); 
         // the op has not been already posted *or* the op is persistent
         trigger &= (dep_op->version==0 || !IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT));
     
