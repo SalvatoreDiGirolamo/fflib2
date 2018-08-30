@@ -216,6 +216,8 @@ int ffop_complete(ffop_t * op){
     if (op->dep_next==NULL) return FFSUCCESS;
     ffdep_op_t * curr_dep = op->dep_next;
     
+    uint8_t satisfy_all = !IS_OPT_SET(op, FFOP_DEP_FIRST);
+
     do{
         ffop_t * dep_op = op->dep_next->op;
         if (op->version <= dep_op->version) {
@@ -239,7 +241,7 @@ int ffop_complete(ffop_t * op){
         }
         
         op->dep_next = op->dep_next->next;
-    } while (op->dep_next != curr_dep);
+    } while (op->dep_next != curr_dep && satisfy_all);
 
     return FFSUCCESS;
 }

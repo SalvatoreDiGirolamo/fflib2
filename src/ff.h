@@ -45,6 +45,7 @@
 #define FFBUFFER_PTR        (1 << 5)
 #define FFBUFFER_IDX        (1 << 6)
 #define FFCOLL_BUFFERS      (1 << 7)
+#define FFOP_DEP_FIRST      (1 << 8)
 
 /* Our NULL */
 #define FFNONE              -1
