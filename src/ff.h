@@ -72,6 +72,7 @@ int ffop_test(ffop_h op, int * flag);
 int ffop_hb(ffop_h first, ffop_h second);
 int ffop_free(ffop_h _op);
 int ffop_tostring(ffop_h op, char * str, int len);
+int ffop_cancel(ffop_h op);
 
 int ffbuffer_create(void * addr, uint32_t count, ffdatatype_h datatype, int options, ffbuffer_h * _ffbuff);
 int ffbuffer_delete(ffbuffer_h ffbuff);

@@ -73,3 +73,8 @@ int ffop_gcomp_test(ffop_t * op, int * flag){
     *flag = 1;
     return FFSUCCESS;
 }
+
+int ffop_gcomp_cancel(ffop_t * op){
+    return FFSUCCESS;
+}
+

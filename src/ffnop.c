@@ -26,3 +26,7 @@ int ffnop_finalize(ffop_t * op){
 
     return FFSUCCESS;
 }
+
+int ffnop_cancel(ffop_t * op){
+    return FFSUCCESS;
+}

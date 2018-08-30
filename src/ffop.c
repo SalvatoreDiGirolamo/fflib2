@@ -66,6 +66,11 @@ int ffop_post(ffop_h _op){
         return FFINVALID_ARG;
     }
 
+    if (op->in_flight){
+        FFLOG("Cancelling op %lu (version: %u)\n", op->id, op->version);
+        ffop_cancel(_op);
+    }
+    op->in_flight = 1;
 
     op->instance.completed = 0;
 
@@ -180,6 +185,7 @@ int ffop_create(ffop_t ** ptr){
     op->dep_next                    = NULL;
     op->dep_first                   = NULL;
     op->dep_last                    = NULL;
+    op->in_flight                   = 0;
 
     op->instance.next               = NULL;
     op->instance.dep_left           = 0;
@@ -198,7 +204,7 @@ int ffop_create(ffop_t ** ptr){
 int ffop_complete(ffop_t * op){
 
     FFLOG("completing op %lu\n", op->id);
-
+    op->in_flight = 0;
     // restore dep_left, so the op can be reused
     op->instance.dep_left = op->in_dep_count; 
     __sync_add_and_fetch(&(op->instance.completed), 1);
@@ -236,4 +242,9 @@ int ffop_complete(ffop_t * op){
     } while (op->dep_next != curr_dep);
 
     return FFSUCCESS;
+}
+
+int ffop_cancel(ffop_h _op){
+    ffop_t * op = (ffop_t *) _op;
+    return ff.impl.ops[op->type].cancel(op); 
 }

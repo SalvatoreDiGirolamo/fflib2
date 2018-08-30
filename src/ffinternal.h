@@ -71,6 +71,7 @@ typedef int (*ffop_test_t)(ffop_t*, int*);
 typedef int (*ffop_wait_t)(ffop_t*);
 typedef int (*ffop_tostring_t)(ffop_t*, char *, int);
 typedef int (*ffop_finalize_t)(ffop_t*);
+typedef int (*ffop_cancel_t)(ffop_t*);
 
 typedef struct ffop_descriptor{
     ffop_init_t init;
@@ -79,6 +80,7 @@ typedef struct ffop_descriptor{
     ffop_finalize_t finalize;
     ffop_wait_t wait;
     ffop_test_t test;
+    ffop_cancel_t cancel;
 } ffop_descriptor_t;
 
 

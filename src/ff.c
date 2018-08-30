@@ -27,7 +27,8 @@ int ffinit(int * argc, char *** argv){
     /* ffnop is internal */
     ff.impl.ops[FFNOP].init = NULL;
     ff.impl.ops[FFNOP].post = ffnop_post; 
-    
+    ff.impl.ops[FFNOP].cancel = ffnop_cancel;    
+
     /* tostring is internal */
     ff.impl.ops[FFSEND].tostring = ffsend_tostring;
     ff.impl.ops[FFRECV].tostring = ffrecv_tostring;

@@ -42,6 +42,9 @@ struct ffop{
     struct ffdep_op *dep_first;
     struct ffdep_op *dep_last;
 
+    /* true if the op has been posted but not completed */
+    uint8_t in_flight; 
+
     /* number of incoming dependencies (fired when 0) */
     uint32_t in_dep_count;
 
