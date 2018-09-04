@@ -238,7 +238,7 @@ int ffop_complete(ffop_t * op){
             continue;
         }
 
-        if (IS_OPT_SET(dep_op, FFOP_NO_AUTOPOST)){
+        if (IS_OPT_SET(dep, FFDEP_NO_AUTOPOST)){
             FFLOG("op %lu is set with FFOP_NO_AUTOPOST --> skipping it!\n", dep_op->id);
             continue;
         }

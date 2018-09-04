@@ -7,7 +7,7 @@ int ffactivation_free(ffschedule_h sched){
     free(buff);
 }
 
-int ffactivation(int tag, ffop_h *user_activator, ffschedule_h *_sched){
+int ffactivation(int tag, ffop_h *user_activator, ffop_h * user_activator_test, ffschedule_h *_sched){
     ffschedule_h sched;
     FFCALL(ffschedule_create(&sched));
 
@@ -26,8 +26,12 @@ int ffactivation(int tag, ffop_h *user_activator, ffschedule_h *_sched){
     ffschedule_set_state(sched, (void *) buff);
     ffschedule_set_delete_callback(sched, ffactivation_free);
 
-    ffnop(FFOP_NO_AUTOPOST, user_activator); 
-   
+    ffop_h sched_begin_op;
+    ffschedule_get_begin_op(sched, &sched_begin_op);   
+
+    ffnop(0, user_activator); 
+    ffop_hb(sched_begin_op, *user_activator, FFDEP_NO_AUTOPOST);
+
     ffop_h prev_dep = *user_activator;
     int mask = 0x1, cnt=0;
     while (mask < csize) {
@@ -61,11 +65,14 @@ int ffactivation(int tag, ffop_h *user_activator, ffschedule_h *_sched){
         mask <<= 1;
     }
 
+    if (cnt>0) *user_activator_test = completions[0];
+
     ffschedule_add_op(sched, *user_activator);
     ffop_h sched_completion;
     ffnop(FFOP_DEP_OR, &sched_completion);
 
     ffop_hb(recvs[cnt-1], sched_completion, 0);
+
     for (int i=0; i<cnt; i++){     
         ffop_hb(completions[i], sched_completion, 0);
         //this thing that we need to add the ops to the sched once all the deps are satisfied sucks!!!
@@ -74,6 +81,7 @@ int ffactivation(int tag, ffop_h *user_activator, ffschedule_h *_sched){
         ffschedule_add_op(sched, completions[i]);
     }
     ffschedule_add_op(sched, sched_completion);
+
 
     *_sched = sched;
 

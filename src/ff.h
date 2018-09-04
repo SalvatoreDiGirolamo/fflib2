@@ -46,7 +46,7 @@
 #define FFBUFFER_IDX            (1 << 6)
 #define FFCOLL_BUFFERS          (1 << 7)
 #define FFOP_DEP_FIRST          (1 << 8)
-#define FFOP_NO_AUTOPOST       (1 << 9)
+#define FFDEP_NO_AUTOPOST       (1 << 9)
 #define FFDEP_IGNORE_VERSION    (1 << 10)
 
 /* Our NULL */
@@ -112,7 +112,7 @@ int ffschedule_get_end_op(ffschedule_h schedh, ffop_h *oph);
 
 int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h ffoperator, ffdatatype_h datatype, int options, ffschedule_h * _sched);
 
-int ffactivation(int tag, ffop_h * user_activator, ffschedule_h *_sched);
+int ffactivation(int tag, ffop_h * user_activator, ffop_h * user_activator_test, ffschedule_h *_sched);
 
 
 #endif /* _FF_H_ */
