@@ -18,7 +18,7 @@ int ffnop_post(ffop_t * op, ffbuffer_set_t * mem){
 }
 
 int ffnop_tostring(ffop_t * op, char * str, int len){
-    snprintf(str, len, "N.%lu", op->id); 
+    snprintf(str, len, "%lu.N", op->id); 
     return FFSUCCESS;
 }
 

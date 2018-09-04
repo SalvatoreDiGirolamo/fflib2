@@ -48,7 +48,7 @@ int main(int argc, char * argv[]){
 
         FFCALL(ffrecv(buffer_ping, count, FFINT32, 0, 0, 0, &pingop));
         FFCALL(ffsend(buffer_ping, count, FFINT32, 0, 0, 0, &pongop));       
-        ffop_hb(pingop, pongop);
+        ffop_hb(pingop, pongop, 0);
  
         FFCALL(ffschedule_add_op(sched, pingop));
         FFCALL(ffschedule_add_op(sched, pongop));

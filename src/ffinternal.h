@@ -34,7 +34,7 @@ char dot_a[DOTLEN]; \
 char dot_b[DOTLEN]; \
 ffop_tostring(A, dot_a, DOTLEN); \
 ffop_tostring(B, dot_b, DOTLEN); \
-FFLOG("DOT#\"%i.%s\" -> \"%i.%s\"\n", dbg_myrank, dot_a, dbg_myrank, dot_b); \
+FFLOG("DOT#\"%s.%i\" -> \"%s.%i\"\n", dot_a, dbg_myrank, dot_b, dbg_myrank); \
 }
 #else
 #define FFLOG(MSG, ...) 

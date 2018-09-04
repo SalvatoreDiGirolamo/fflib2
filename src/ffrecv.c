@@ -34,7 +34,7 @@ int ffrecv_b(ffbuffer_h buffer, int source,int16_t tag, int options, ffop_h * _o
 }
 
 int ffrecv_tostring(ffop_t * op, char * str, int len){
-    snprintf(str, len, "R.%lu(%i)", op->id, op->recv.peer); 
+    snprintf(str, len, "%lu.R(%i)", op->id, op->recv.peer); 
     return FFSUCCESS;
 }
 

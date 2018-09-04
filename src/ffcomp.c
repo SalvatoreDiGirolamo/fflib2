@@ -46,7 +46,7 @@ int ffcomp_operator_delete(ffoperator_h handle){
 }
 
 int ffcomp_tostring(ffop_t * op, char * str, int len){
-    snprintf(str, len, "C.%lu", op->id); 
+    snprintf(str, len, "%lu.C", op->id); 
     return FFSUCCESS;
 }
 

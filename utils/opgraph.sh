@@ -1,5 +1,6 @@
 #!/bin/bash
 
-cat <(echo "DOT#digraph s{ ") $1 <(echo "DOT#}")| grep DOT | cut -d "#" -f 2 | gvpack -u | dot -Tps > .graph.ps
+lines=$(cat $1 | grep DOT | cut -d "#" -f 2 | sort)
+echo "digraph s{ $lines }" | gvpack -u | dot -Tps > .graph.ps
 evince .graph.ps
 

@@ -8,11 +8,10 @@
     *oplist = op; \
 }
 
-
 //#define FFOP_IS_COMPLETED(op) (op->instance.posted_version > op->version && op->instance.completed_version == op->instance.posted_version)
-
-
 #define FFOP_IS_COMPLETED(op) (op->instance.completed)
+#define FFOP_TEST_VERSION_COMPLETION(op, VERSION) (VERSION <= op->version && op->instance.completed)
+
 
 //#include "ffinternal.h"
 #include "ffsend.h"
@@ -58,6 +57,9 @@ struct ffop{
     /* current version of the op that has to be posted */
     volatile uint32_t version;
 
+    /* last version it has been waited for */
+    uint32_t wait_version;
+    
     /* this is the consumable part that gets reset every time the operation
      * has to be re-executed. */
     struct instance{
@@ -88,6 +90,7 @@ struct ffop{
 typedef struct ffdep_op{
     struct ffop     *op;
     struct ffdep_op *next;
+    int              options;
 } ffdep_op_t;
 
 int ffop_init();

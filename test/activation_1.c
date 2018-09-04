@@ -26,8 +26,8 @@ int main(int argc, char * argv[]){
     ffnop(0, &nop2);
     ffcomp(&acc, &inc, 1, FFINT32, FFSUM, FFOP_DEP_OR, &acc, &nop3);
 
-    ffop_hb(nop1, nop3);
-    ffop_hb(nop2, nop3);
+    ffop_hb(nop1, nop3, 0);
+    ffop_hb(nop2, nop3, 0);
 
     for (int i=0; i<N; i++){
         // this activates op3

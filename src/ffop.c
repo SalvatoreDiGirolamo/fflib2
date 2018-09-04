@@ -89,17 +89,17 @@ int ffop_post(ffop_h _op){
 int ffop_wait(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
 
-    FFLOG("Waiting op %lu\n", op->id);
+    FFLOG("Waiting op %lu (version: %u; wait_version: %u; waiting for: %u)\n", op->id, op->version, op->wait_version, op->wait_version+1);
 
 #ifdef FFPROGRESS_THREAD
     uint32_t polls=0;
 
 #ifdef WAIT_COND
-    while (!FFOP_IS_COMPLETED(op)){
+    while (!FFOP_TEST_VERSION_COMPLETION(op, op->wait_version+1)){
         FFCOND_WAIT(op->cond, op->mutex);
     }
 #else
-    while (!FFOP_IS_COMPLETED(op)){
+    while (!FFOP_TEST_VERSION_COMPLETION(op, op->wait_version+1)){
         if (polls >= FFPOLLS_BEFORE_YIELD){
             polls=0;
             sched_yield();
@@ -109,6 +109,8 @@ int ffop_wait(ffop_h _op){
     }
 #endif
     op->instance.completed = 0;
+    op->wait_version++;
+
 
     //FFLOG("Wait on %p finished: version: %u; posted version: %u; completed version: %u\n", op, op->version, op->instance.posted_version, op->instance.completed_version);
     return FFSUCCESS;
@@ -120,24 +122,30 @@ int ffop_wait(ffop_h _op){
 
 int ffop_test(ffop_h _op, int * flag){
     ffop_t * op = (ffop_t *) _op;
+    
 #ifdef FFPROGRESS_THREAD
-    *flag = FFOP_IS_COMPLETED(op);
+    *flag = FFOP_TEST_VERSION_COMPLETION(op, op->wait_version+1);
 
     if (*flag){
         op->instance.completed=0;
+        op->wait_version++;
     }
     return FFSUCCESS;
 #else
+    FFLOG_ERROR("This path is not tested!!!\n");
     ff.impl.ops[op->type].test(op, flag); //FIXME: check this return value
     if (*flag){
+        op->instance.completed=0;
+        op->wait_version++;
         return ffop_complete(op);
+
     }
     return FFSUCCESS;
 #endif
 }
 
 
-int ffop_hb(ffop_h _first, ffop_h _second){
+int ffop_hb(ffop_h _first, ffop_h _second, int options){
     ffop_t * first = (ffop_t *) _first;
     ffop_t * second = (ffop_t *) _second;
 #ifdef ARGS_CHECK
@@ -151,6 +159,7 @@ int ffop_hb(ffop_h _first, ffop_h _second){
     ffdep_op_t *dep;        
     ffstorage_pool_get(dep_op_pool, (void **) &dep);
     dep->op = second;
+    dep->options = options;
 
     if (first->dep_first==NULL){
         first->dep_first        = dep;
@@ -181,6 +190,7 @@ int ffop_create(ffop_t ** ptr){
     op->sched_next                  = NULL;
     op->options                     = FFOP_DEP_AND;
     op->version                     = 0;
+    op->wait_version                = 0;
 
     op->dep_next                    = NULL;
     op->dep_first                   = NULL;
@@ -214,14 +224,22 @@ int ffop_complete(ffop_t * op){
 #endif
 
     if (op->dep_next==NULL) return FFSUCCESS;
-    ffdep_op_t * curr_dep = op->dep_next;
+    ffdep_op_t * first_dep = op->dep_next;
     
     uint8_t satisfy_all = !IS_OPT_SET(op, FFOP_DEP_FIRST);
 
     do{
-        ffop_t * dep_op = op->dep_next->op;
-        if (op->version <= dep_op->version) {
+        ffdep_op_t * dep = op->dep_next;
+        ffop_t * dep_op = dep->op;
+        op->dep_next = op->dep_next->next;
+
+        if (op->version <= dep_op->version && !IS_OPT_SET(dep, FFDEP_IGNORE_VERSION)) {
             FFLOG("ffop version mismatch -> dependency not satisfied (%lu.version (dep_op) = %u; %lu.version (op) = %u)\n", dep_op->id, dep_op->version, op->id, op->version);
+            continue;
+        }
+
+        if (IS_OPT_SET(dep_op, FFOP_NO_AUTOPOST)){
+            FFLOG("op %lu is set with FFOP_NO_AUTOPOST --> skipping it!\n", dep_op->id);
             continue;
         }
 
@@ -231,7 +249,7 @@ int ffop_complete(ffop_t * op){
         int trigger;
         // triggering conditions:
         // no dependencies left if is an AND dependency *or* at least one is satisfied if it is an OR dep
-        trigger  = deps == 0 || IS_OPT_SET(dep_op, FFOP_DEP_OR); 
+        trigger  = deps <= 0 || IS_OPT_SET(dep_op, FFOP_DEP_OR); 
         // the op has not been already posted *or* the op is persistent
         trigger &= (dep_op->version==0 || !IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT));
     
@@ -240,8 +258,7 @@ int ffop_complete(ffop_t * op){
             ffop_post((ffop_h) dep_op);
         }
         
-        op->dep_next = op->dep_next->next;
-    } while (op->dep_next != curr_dep && satisfy_all);
+    } while (op->dep_next != first_dep && satisfy_all);
 
     return FFSUCCESS;
 }

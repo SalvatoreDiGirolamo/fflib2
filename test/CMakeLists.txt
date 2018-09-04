@@ -19,6 +19,8 @@ set(TEST_C_SRCS
   allreduce_buffers_fflib_managed
   allreduce_buffers_fflib_managed_inplace
   activation_1
+  activation_tree
+  activation_tree_multiple
   first_dep
 )
 

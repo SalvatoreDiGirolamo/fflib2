@@ -137,7 +137,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperat
             ffsend_b(rb, dst, tag, 0, &send);  
 
             //before sending we have to wait for the computation (or move)
-            ffop_hb(comp, send);
+            ffop_hb(comp, send, 0);
 
             ffrecv_b(state->tmpbuffs[r], dst, tag, 0, &recv);            
  
@@ -145,11 +145,11 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperat
             ffcomp_b(state->tmpbuffs[r], rb, operator, FFCOMP_DEST_ATOMIC, rb, &comp);    
 
             //the next comp has to wait this send (they share the buffer)
-            ffop_hb(send, comp);
+            ffop_hb(send, comp, 0);
             prev_send = send;            
     
             //comp has to wait the receive to happen
-            ffop_hb(recv, comp);    
+            ffop_hb(recv, comp, 0);    
 
             ffschedule_add_op(sched, send);
             ffschedule_add_op(sched, recv);
@@ -220,13 +220,13 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
                 ffcomp(TMPMEM(tmpmem, datatype, count*unitsize, r-1), rcvbuff, count, datatype, operator, FFCOMP_DEST_ATOMIC, rcvbuff, &comp); 
 
                 //we need to receive before start computing
-                ffop_hb(recv, comp);
+                ffop_hb(recv, comp, 0);
 
                 //wait for the rcvbuff (our accumulator) to be ready before sending
-                ffop_hb(move, comp);
+                ffop_hb(move, comp, 0);
 
                 //we need to compute everything before sending
-                ffop_hb(comp, send_up);
+                ffop_hb(comp, send_up, 0);
            
                 ffschedule_add_op(sched, recv); 
                 ffschedule_add_op(sched, comp);   
@@ -242,7 +242,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
             ffsend(rcvbuff, count, datatype, peer, tag, 0, &send);
     
             //receive & reduce data from children before sending it up
-            ffop_hb(send_up, send);
+            ffop_hb(send_up, send, 0);
             
             ffschedule_add_op(sched, send);
 
@@ -250,7 +250,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
         }
     }
  
-    if (recv==FFNONE) ffop_hb(move, send_up); 
+    if (recv==FFNONE) ffop_hb(move, send_up, 0); 
     ffschedule_add_op(sched, move);
 
     // broadcast
@@ -269,7 +269,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
                 //recv
                 ffrecv(rcvbuff, count, datatype, peer, tag, 0, &recv);               
     
-                ffop_hb(recv, recv_before_send);
+                ffop_hb(recv, recv_before_send, 0);
 
                 ffschedule_add_op(sched, recv);
             }
@@ -278,7 +278,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
 
     // at the root we need to wait to receive before sending down
     if (recv == FFNONE) {
-        ffop_hb(send_up, recv_before_send);
+        ffop_hb(send_up, recv_before_send, 0);
     }
 
     // now send to the right hosts 
@@ -291,7 +291,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int tag, ffoperator_h
             //send
             ffsend(rcvbuff, count, datatype, peer, tag, 0, &send);
 
-            ffop_hb(recv_before_send, send);
+            ffop_hb(recv_before_send, send, 0);
 
             ffschedule_add_op(sched, send);
         }

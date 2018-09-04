@@ -74,14 +74,26 @@ int ffschedule_add_op(ffschedule_h schedh, ffop_h oph){
     
     if (op->in_dep_count==0){
         FFLOG("making op %lu dependent from begin; schedule %lu\n", op->id, sched->id);
-        ffop_hb((ffop_h) sched->begin_op, (ffop_h) op);
+        ffop_hb((ffop_h) sched->begin_op, (ffop_h) op, 0);
     }
 
     if (op->dep_next==NULL){
         FFLOG("making end_op dependent from op %lu; schedule: %lu\n", op->id, sched->id);
-        ffop_hb((ffop_h) op, (ffop_h) sched->end_op);
+        ffop_hb((ffop_h) op, (ffop_h) sched->end_op, 0);
     }
 
+    return FFSUCCESS;
+}
+
+int ffschedule_get_begin_op(ffschedule_h schedh, ffop_h *oph){
+    ffschedule_t * sched = (ffschedule_t *) schedh;
+    *oph = (ffop_h) sched->begin_op;   
+    return FFSUCCESS;
+}
+
+int ffschedule_get_end_op(ffschedule_h schedh, ffop_h *oph){
+    ffschedule_t * sched = (ffschedule_t *) schedh;
+    *oph = (ffop_h) sched->end_op;   
     return FFSUCCESS;
 }
 
@@ -99,7 +111,23 @@ int ffschedule_wait(ffschedule_h handle){
     FFLOG_ERROR("Not implemented (FFPROGRESS_THREAD not defined)!\n");
     exit(1);
 #endif
+
+/*
+    if (sched->begin_op->version < sched->end_op->version){
+        FFLOG_ERROR("ffschedule_wait has a version mismatch between begin_op (ver: %u) and end_op (ver: %u)!\n", sched->begin_op->version, sched->end_op->version);
+        exit(1);
+    }
+
+    while (sched->begin_op->version > sched->end_op->version){
+        FFLOG("sched->begin_op->version: %u; sched->end_op->version: %u\n", sched->begin_op->version, sched->end_op->version);
+        ffop_wait((ffop_h) sched->end_op);
+    }
+
+    return FFSUCCESS;
+*/
+    FFLOG("sched->begin_op->version: %u; sched->end_op->version: %u; sched->end_op->completed: %u\n", sched->begin_op->version, sched->end_op->version, (uint32_t) sched->end_op->instance.completed);
     return ffop_wait((ffop_h) sched->end_op);
+
 }
 
 int ffschedule_test(ffschedule_h handle, int * flag){

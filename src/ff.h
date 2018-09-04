@@ -38,14 +38,16 @@
 #define FFCUSTOM            6
 
 /* options */
-#define FFOP_DEP_AND        (1 << 1)
-#define FFOP_DEP_OR         (1 << 2)
-#define FFOP_NON_PERSISTENT (1 << 3)
-#define FFCOMP_DEST_ATOMIC  (1 << 4)
-#define FFBUFFER_PTR        (1 << 5)
-#define FFBUFFER_IDX        (1 << 6)
-#define FFCOLL_BUFFERS      (1 << 7)
-#define FFOP_DEP_FIRST      (1 << 8)
+#define FFOP_DEP_AND            (1 << 1)
+#define FFOP_DEP_OR             (1 << 2)
+#define FFOP_NON_PERSISTENT     (1 << 3)
+#define FFCOMP_DEST_ATOMIC      (1 << 4)
+#define FFBUFFER_PTR            (1 << 5)
+#define FFBUFFER_IDX            (1 << 6)
+#define FFCOLL_BUFFERS          (1 << 7)
+#define FFOP_DEP_FIRST          (1 << 8)
+#define FFOP_NO_AUTOPOST       (1 << 9)
+#define FFDEP_IGNORE_VERSION    (1 << 10)
 
 /* Our NULL */
 #define FFNONE              -1
@@ -70,7 +72,7 @@ int ffsize(int * size);
 int ffop_post(ffop_h op);
 int ffop_wait(ffop_h op);
 int ffop_test(ffop_h op, int * flag);
-int ffop_hb(ffop_h first, ffop_h second);
+int ffop_hb(ffop_h first, ffop_h second, int options);
 int ffop_free(ffop_h _op);
 int ffop_tostring(ffop_h op, char * str, int len);
 int ffop_cancel(ffop_h op);
@@ -105,7 +107,12 @@ int ffschedule_set_state(ffschedule_h handle, void * state);
 int ffschedule_get_state(ffschedule_h handle, void ** state);
 int ffschedule_set_post_callback(ffschedule_h handle, ffschedule_post_callback_t cb);
 int ffschedule_set_delete_callback(ffschedule_h handle, ffschedule_delete_callback_t cb);
+int ffschedule_get_begin_op(ffschedule_h schedh, ffop_h *oph);
+int ffschedule_get_end_op(ffschedule_h schedh, ffop_h *oph);
 
 int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h ffoperator, ffdatatype_h datatype, int options, ffschedule_h * _sched);
+
+int ffactivation(int tag, ffop_h * user_activator, ffschedule_h *_sched);
+
 
 #endif /* _FF_H_ */

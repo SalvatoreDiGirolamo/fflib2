@@ -34,7 +34,7 @@ int ffsend_b(ffbuffer_h buffer, int dest, int16_t tag, int options, ffop_h *_op)
 }
 
 int ffsend_tostring(ffop_t * op, char * str, int len){
-    snprintf(str, len, "S.%lu(%i)", op->id, op->send.peer); 
+    snprintf(str, len, "%lu.S(%i)", op->id, op->send.peer); 
     return FFSUCCESS;
 }
 

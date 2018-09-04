@@ -49,7 +49,7 @@ int main(int argc, char * argv[]){
             FFCALL(ffrecv(buffer_ping, count, FFINT32, 0, 0, 0, &pingop));
             FFCALL(ffsend(buffer_ping, count, FFINT32, 0, 0, 0, &pongop));
         
-            ffop_hb(pingop, pongop);
+            ffop_hb(pingop, pongop, 0);
     
             ffop_post(pingop);   
             //ffop_post(pongop); /* no need to post a dependent op! */  
