@@ -25,7 +25,7 @@
 
 #ifdef FFDEBUG
 extern int dbg_myrank;
-#define FFLOG(MSG, ...) printf("[%i - %u][%s:%i] "MSG, dbg_myrank, getpid(), __FILE__, __LINE__,  ##__VA_ARGS__)
+#define FFLOG(MSG, ...) printf("[%i - %u - %u][%s:%i] "MSG, dbg_myrank, getpid(), (unsigned int) pthread_self(), __FILE__, __LINE__,  ##__VA_ARGS__)
 
 #define DOTLEN 256
 #define FFGRAPH(A, B) \

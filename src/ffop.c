@@ -265,5 +265,6 @@ int ffop_complete(ffop_t * op){
 
 int ffop_cancel(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
+    FFLOG("Cancelling op %lu (version: %u)\n", op->id, op->version);
     return ff.impl.ops[op->type].cancel(op); 
 }
