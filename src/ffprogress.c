@@ -8,7 +8,6 @@ volatile int _progresser_ready = 0;
 static ffprogresser_t progressers[MAX_PROGRESSERS];
 static uint32_t progressers_count = 0;
 
-
 int ffprogresser_register(ffprogresser_t progresser){
     if (progressers_count >= MAX_PROGRESSERS) {
         FFLOG_ERROR("Not enough progressers slots!\n");

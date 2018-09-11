@@ -7,6 +7,7 @@
 #define FFINVALID_ARG -2
 #define FFTOO_MANY_DEPS -3
 #define FFENOMEM -4
+#define FFVERSION -5
 
 #include <stddef.h>
 #include <stdint.h>

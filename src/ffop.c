@@ -47,6 +47,11 @@ int ffop_tostring(ffop_h _op, char * str, int len){
 }
 
 int ffop_post(ffop_h _op){
+    ffop_t * op = (ffop_t *) _op;
+    return ffop_post_with_version(_op, op->version);
+}
+
+int ffop_post_with_version(ffop_h _op, uint32_t op_version){
     int res;
     ffop_t * op = (ffop_t *) _op;
 
@@ -61,24 +66,26 @@ int ffop_post(ffop_h _op){
     }
 #endif
 
-    if (op->version>0 && IS_OPT_SET(op, FFOP_NON_PERSISTENT)){
+    if (op_version>0 && IS_OPT_SET(op, FFOP_NON_PERSISTENT)){
         FFLOG("Re-posting a non-persistent operation is not allowed!\n");
         return FFINVALID_ARG;
     }
 
+    //now we decided we want to post it, check for races
+    if (!CAS(&(op->version), op_version, op_version+1)){
+        FFLOG("op %lu got already posted in the meantime (my version: %u; current version: %u)\n", op->id, op_version, op->version);
+        return FFVERSION;
+    }
+
     if (op->in_flight){
-        FFLOG("Cancelling op %lu (version: %u)\n", op->id, op->version);
         ffop_cancel(_op);
     }
     op->in_flight = 1;
-
     op->instance.completed = 0;
 
     FFLOG("Posting op %lu\n", op->id);
     //__sync_fetch_and_add(&(op->instance.posted_version), 1);
     res = ff.impl.ops[op->type].post(op, NULL);
-
-    __sync_fetch_and_add(&(op->version), 1);
 
     /* check if the operation has been immediately completed */
     if (res==FFCOMPLETED){ ffop_complete(op); }
@@ -232,9 +239,11 @@ int ffop_complete(ffop_t * op){
         ffdep_op_t * dep = op->dep_next;
         ffop_t * dep_op = dep->op;
         op->dep_next = op->dep_next->next;
+        uint32_t op_version = op->version;
+        uint32_t dep_op_version = dep_op->version;
 
-        if (op->version <= dep_op->version && !IS_OPT_SET(dep, FFDEP_IGNORE_VERSION)) {
-            FFLOG("ffop version mismatch -> dependency not satisfied (%lu.version (dep_op) = %u; %lu.version (op) = %u)\n", dep_op->id, dep_op->version, op->id, op->version);
+        if (op_version <= dep_op_version && !IS_OPT_SET(dep, FFDEP_IGNORE_VERSION)) {
+            FFLOG("ffop version mismatch -> dependency not satisfied (%lu.version (dep_op) = %u; %lu.version (op) = %u)\n", dep_op->id, dep_op_version, op->id, op_version);
             continue;
         }
 
@@ -244,18 +253,20 @@ int ffop_complete(ffop_t * op){
         }
 
         uint32_t deps = __sync_add_and_fetch(&(dep_op->instance.dep_left), -1);
-        FFLOG("Decreasing %lu dependencies by one: now %i (is OR dep: %u; non-persistent: %u); %lu.version (dep_op) = %u; %lu.version (op) = %u\n", dep_op->id, dep_op->instance.dep_left, (unsigned int) IS_OPT_SET(dep_op, FFOP_DEP_OR), (unsigned int) IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT), dep_op->id, dep_op->version, op->id, op->version);
+        FFLOG("Decreasing %lu dependencies by one: now %i (is OR dep: %u; non-persistent: %u); %lu.version (dep_op) = %u; %lu.version (op) = %u\n", dep_op->id, dep_op->instance.dep_left, (unsigned int) IS_OPT_SET(dep_op, FFOP_DEP_OR), (unsigned int) IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT), dep_op->id, dep_op_version, op->id, op_version);
 
         int trigger;
         // triggering conditions:
         // no dependencies left if is an AND dependency *or* at least one is satisfied if it is an OR dep
         trigger  = deps <= 0 || IS_OPT_SET(dep_op, FFOP_DEP_OR); 
         // the op has not been already posted *or* the op is persistent
-        trigger &= (dep_op->version==0 || !IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT));
+        trigger &= (dep_op_version==0 || !IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT));
     
         if (trigger){
             FFLOG("All dependencies of %lu are satisfied: posting it!\n", dep_op->id);
-            ffop_post((ffop_h) dep_op);
+            ffop_post_with_version((ffop_h) dep_op, dep_op_version);
+        }else if (deps<=0){
+            FFLOG("Op %lu is not going to be posted even if its deps are <=0 (%u)\n", dep_op->id, deps);    
         }
         
     } while (op->dep_next != first_dep && satisfy_all);

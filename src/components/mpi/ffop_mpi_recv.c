@@ -40,6 +40,7 @@ int ffop_mpi_recv_test(ffop_t * op, int * flag){
 
 int ffop_mpi_recv_cancel(ffop_t * op){
     ffrecv_t * recv = &(op->recv);
+    FFLOG("Cancelling MPI_Irecv (op: %lu)!\n", op->id);
     MPI_Cancel(&(recv->transport.mpireq));
 
     //a cancelled op needs to be waited for

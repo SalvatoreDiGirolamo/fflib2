@@ -23,6 +23,8 @@
 
 #define IS_OPT_SET(op, opt) (((op->options) & opt) == opt)
 
+#define CAS(PTR, OLDVAL, NEWVAL) __sync_bool_compare_and_swap(PTR, OLDVAL, NEWVAL)
+
 #ifdef FFDEBUG
 extern int dbg_myrank;
 #define FFLOG(MSG, ...) printf("[%i - %u - %u][%s:%i] "MSG, dbg_myrank, getpid(), (unsigned int) pthread_self(), __FILE__, __LINE__,  ##__VA_ARGS__)
