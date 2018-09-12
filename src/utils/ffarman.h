@@ -1,6 +1,7 @@
+#ifndef _FFARMAN_H_
+#define _FFARMAN_H_
 
 #include "../ffinternal.h"
-
 #include "../fflocks.h"
 
 typedef struct entry {
@@ -27,3 +28,4 @@ int ffarman_free(ffarman_t * array);
 uint32_t ffarman_get(ffarman_t * array);
 int ffarman_put(ffarman_t * array, uint32_t idx);
 
+#endif /* _FFARMAN_H_ */

@@ -46,6 +46,8 @@ src/components/mpi/ffop_mpi_send.c
 src/components/mpi/ffmpi_types.h
 src/utils/ffarman.c
 src/utils/ffarman.h
+src/utils/ffqman.h
+src/utils/ffqman.c
 src/components/gcomp/ffgcomp.c
 src/components/gcomp/ffgcomp.h
 src/components/gcomp/ffop_gcomp.c
