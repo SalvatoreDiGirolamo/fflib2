@@ -27,18 +27,24 @@ int ffinit(int * argc, char *** argv){
     /* ffnop is internal */
     ff.impl.ops[FFNOP].init = NULL;
     ff.impl.ops[FFNOP].post = ffnop_post; 
+
+    /* ffcallback is internal */
+    ff.impl.ops[FFCALLBACK].init = NULL;
+    ff.impl.ops[FFCALLBACK].post = ffcallback_post;
     
     /* tostring is internal */
     ff.impl.ops[FFSEND].tostring = ffsend_tostring;
     ff.impl.ops[FFRECV].tostring = ffrecv_tostring;
     ff.impl.ops[FFNOP].tostring  = ffnop_tostring;
     ff.impl.ops[FFCOMP].tostring  = ffcomp_tostring;
+    ff.impl.ops[FFCALLBACK].tostring = ffcallback_tostring;
 
     /* finalize is internal */
     ff.impl.ops[FFSEND].finalize = ffsend_finalize;
     ff.impl.ops[FFRECV].finalize = ffrecv_finalize;
     ff.impl.ops[FFNOP].finalize = ffnop_finalize;
     ff.impl.ops[FFCOMP].finalize = ffcomp_finalize;
+    ff.impl.ops[FFCALLBACK].finalize = ffcallback_finalize;
 
     ffstorage_init();
     ffbuffer_init();

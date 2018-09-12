@@ -16,6 +16,7 @@ set(TEST_C_SRCS
   allreduce_inplace
   allreduce_buffers_user_managed
   allreduce_buffers_user_managed_inplace
+  allreduce_buffers_user_managed_callback
   allreduce_buffers_fflib_managed
   allreduce_buffers_fflib_managed_inplace
 )

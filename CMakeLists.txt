@@ -32,6 +32,8 @@ src/ffstorage.c
 src/ffbind.h
 src/ffnop.c
 src/ffnop.h
+src/ffcallback.c
+src/ffcallback.h
 src/ffschedule.c
 src/ffschedule.h
 src/components/mpi/ffmpi.h

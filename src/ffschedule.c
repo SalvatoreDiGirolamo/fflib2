@@ -85,6 +85,18 @@ int ffschedule_add_op(ffschedule_h schedh, ffop_h oph){
     return FFSUCCESS;
 }
 
+int ffschedule_get_begin_op(ffschedule_h schedh, ffop_h *oph){
+    ffschedule_t * sched = (ffschedule_t *) schedh;
+    *oph = (ffop_h) sched->begin_op;   
+    return FFSUCCESS;
+}
+
+int ffschedule_get_end_op(ffschedule_h schedh, ffop_h *oph){
+    ffschedule_t * sched = (ffschedule_t *) schedh;
+    *oph = (ffop_h) sched->end_op;   
+    return FFSUCCESS;
+}
+
 int ffschedule_post(ffschedule_h handle){
     ffschedule_t * sched = (ffschedule_t *) handle; 
     FFLOG("Posting schedule %lu\n", sched->id);

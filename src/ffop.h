@@ -21,6 +21,7 @@
 #include "ffrecv.h"
 #include "ffcomp.h"
 #include "ffnop.h"
+#include "ffcallback.h"
 
 typedef uint32_t ffop_type_t;
 
@@ -31,10 +32,11 @@ struct ffop{
 
     /* actual operation */
     union{
-        ffsend_t send;
-        ffrecv_t recv;
-        ffcomp_t comp;
-        ffnop_t  nop;
+        ffsend_t        send;
+        ffrecv_t        recv;
+        ffcomp_t        comp;
+        ffnop_t         nop;
+        ffcallback_t    callback;
     };
 
     /* pointers to operations dependent on this */
