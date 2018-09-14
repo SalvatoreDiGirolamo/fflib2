@@ -30,6 +30,11 @@ int alloc_pool_internal(uint32_t poolid, size_t elem_size, uint32_t count){
         //FFLOG("current: %p; head->next: %p (size: %lu) man: %p\n", GET(pools[poolid], i), GET(pools[poolid], i)->next, elem_size, ((uint8_t *) GET(pools[poolid], i)) + sizeof(ffmem_block_t) + elem_size);
         GET(pools[poolid], i)->poolid = poolid;
         GET(pools[poolid], i)->id = i;
+    
+        if (pools[poolid].init_fun!=NULL){
+            void * ptr = (void *) ((uint8_t *) pools[poolid].head + (sizeof(ffmem_block_t) + elem_size)*i + sizeof(ffmem_block_t));
+            pools[poolid].init_fun(ptr);
+        }
     }
 
     GET(pools[poolid], count-1)->next = NULL;
@@ -42,13 +47,14 @@ int alloc_pool_internal(uint32_t poolid, size_t elem_size, uint32_t count){
     return FFSUCCESS;
 }
 
-pool_h ffstorage_pool_create(size_t elem_size, uint32_t initial_count){
+pool_h ffstorage_pool_create(size_t elem_size, uint32_t initial_count, ffpool_init_fun_t init_fun){
     if (next_free_pool >= MAX_POOLS) return FFENOMEM;
     pool_h poolid = ffarman_get(&index_manager);
     pools[poolid].head = NULL;
     pools[poolid].elem_size = elem_size;
     pools[poolid].curr_size = 0;
     pools[poolid].pool_size = 0;
+    pools[poolid].init_fun = init_fun;
 
     //printf("creating pool: %u; %p\n", poolid, pools[poolid].head);
 

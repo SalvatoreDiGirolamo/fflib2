@@ -3,6 +3,7 @@
 #include "ffsend.h"
 #include "ffrecv.h"
 #include "ffstorage.h"
+#include "ffop_default_progresser.h"
 #include <sched.h>
 
 #define INITIAL_FFOP_POOL_COUNT 1024
@@ -15,8 +16,8 @@ static uint64_t opid = 0;
 
 int ffop_init(){
 
-    op_pool = ffstorage_pool_create(sizeof(ffop_t), INITIAL_FFOP_POOL_COUNT);
-    dep_op_pool = ffstorage_pool_create(sizeof(ffdep_op_t), INITIAL_FFDEP_OP_POOL_COUNT);
+    op_pool = ffstorage_pool_create(sizeof(ffop_t), INITIAL_FFOP_POOL_COUNT, NULL);
+    dep_op_pool = ffstorage_pool_create(sizeof(ffdep_op_t), INITIAL_FFDEP_OP_POOL_COUNT, NULL);
 
     return FFSUCCESS;
 }
@@ -88,7 +89,7 @@ int ffop_post_with_version(ffop_h _op, uint32_t op_version){
     res = ff.impl.ops[op->type].post(op, NULL);
 
     /* check if the operation has been immediately completed */
-    if (res==FFCOMPLETED){ ffop_complete(op); }
+    if (res==FFCOMPLETED){ ffop_default_progresser_track(op); }
     
     return res;
 }

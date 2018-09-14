@@ -8,6 +8,7 @@
 
 typedef uint32_t pool_h;
 
+typedef void (*ffpool_init_fun_t)(void *);
 
 typedef struct ffmem_block{
     size_t size;
@@ -24,10 +25,11 @@ typedef struct ffpool{
     uint32_t pool_size;
     uint32_t curr_size;
     size_t elem_size;
+    ffpool_init_fun_t init_fun;
 } ffpool_t;
 
 
-pool_h ffstorage_pool_create(size_t elem_size, uint32_t initial_count);
+pool_h ffstorage_pool_create(size_t elem_size, uint32_t initial_count, ffpool_init_fun_t init_fun);
 int ffstorage_pool_destroy(pool_h poolid);
 
 int ffstorage_pool_get(pool_h pool, void ** ptr);

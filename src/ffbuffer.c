@@ -94,7 +94,7 @@ int ffbuffer_resize(ffbuffer_h handle, void * addr, uint32_t new_count, ffdataty
 }
 
 int ffbuffer_init(){
-    buff_pool = ffstorage_pool_create(sizeof(ffbuffer_t), INITIAL_FFBUFFER_POOL_COUNT);
+    buff_pool = ffstorage_pool_create(sizeof(ffbuffer_t), INITIAL_FFBUFFER_POOL_COUNT, NULL);
     return FFSUCCESS;
 }
 

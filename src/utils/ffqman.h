@@ -9,19 +9,19 @@
 typedef struct ffqman_entry {
     void * ptr;
     struct ffqman_entry * next;
+    struct ffqman_entry * prev;
+    FFLOCK_TYPE lock;
 } ffqman_entry_t;
 
 typedef struct ffqman {
-    ffqman_entry_t * head;
-    ffqman_entry_t * tail;
-    FFLOCK_TYPE head_lock;
-    FFLOCK_TYPE tail_lock;
+    ffqman_entry_t *head, *tail;
+    ffqman_entry_t *head_sentinel, *tail_sentinel;
 } ffqman_t;
 
 
 int ffqman_init();
 int ffqman_finalize();
-int ffqman_create(uint32_t count, ffqman_t * queue);
+int ffqman_create(ffqman_t * queue);
 int ffqman_free(ffqman_t * queue);
 int ffqman_push(ffqman_t * queue, void * ptr);
 int ffqman_pop(ffqman_t * queue, void ** ptr);

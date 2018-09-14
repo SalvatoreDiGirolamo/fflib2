@@ -7,6 +7,8 @@
 #include "ffinternal.h"
 #include "ffschedule.h"
 #include "ffbuffer.h"
+#include "ffop_default_progresser.h"
+#include "utils/ffqman.h"
 
 #ifdef FFDEBUG
 #include <sys/types.h>
@@ -45,11 +47,19 @@ int ffinit(int * argc, char *** argv){
     ffbuffer_init();
     ffop_init();
     ffschedule_init();
+    ffqman_init();
+    
+    /* register default progresser (before progress thread!)*/
+    ffprogresser_t default_progresser;
+    default_progresser.init = ffop_default_progresser_init;
+    default_progresser.finalize = ffop_default_progresser_finalize;
+    default_progresser.progress = ffop_default_progresser_progress;
+    ffprogresser_register(default_progresser);
 
+    /* Initialize the backend */
     ff.impl.init(argc, argv);
 
     ff.terminate = 0;
-
 #ifdef FFPROGRESS_THREAD
     ret = pthread_create(&(ff.progress_thread), NULL, progress_thread, &ff);
     if (ret){ return FFERROR; }
@@ -81,7 +91,8 @@ int fffinalize(){
     ffop_finalize();
     ffbuffer_finalize();
     ffstorage_finalize();
-  
+    ffqman_finalize();  
+
     return FFSUCCESS;
 }
 
