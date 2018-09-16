@@ -23,9 +23,9 @@ int ffqman_create(ffqman_t * queue){
     ffstorage_pool_get(qman_entry_pool, (void **) &(queue->tail_sentinel));
 
     queue->head = queue->head_sentinel;
-    queue->tail = queue->tail_sentinel;
+    queue->tail = queue->head_sentinel;
 
-    queue->head->next = queue->tail;
+    queue->head->next = queue->tail_sentinel;
     return FFSUCCESS;
 }
 
@@ -43,27 +43,30 @@ int ffqman_push(ffqman_t * queue, void * ptr){
  
     while (1){
         ffqman_entry_t * tail = queue->tail;  
+        ffqman_entry_t * tail_next = queue->tail->next;  
 
         //FFLOG("pushing %p on %p: locking\n", queue, ptr);
+        //FFLOG("locking %i (1)\n", tail->lock);
         FFLOCK_LOCK(&(tail->lock));
-        //FFLOG("locked\n");
+        //FFLOG("locking %i (2)\n", tail_next->lock);
+        FFLOCK_LOCK(&(tail_next->lock));
+        //FFLOG("locked!\n");
     
-        if (queue->tail == tail){
-            if (queue->tail == queue->tail_sentinel){
-                queue->tail = el;
-                queue->head = el;
-            }else{
-                queue->tail->next = el;
-            }
-
+        if (queue->tail == tail && queue->tail->next == tail_next){
             el->next = queue->tail_sentinel;
+            queue->tail->next = el;
+            queue->tail = el;
+
+            FFLOCK_UNLOCK(&(tail_next->lock));
             FFLOCK_UNLOCK(&(tail->lock));
-            //FFLOG("unlocked\n");
 
             return FFSUCCESS;
         }
-
+        
+        FFLOCK_UNLOCK(&(tail_next->lock));
+        //FFLOG("unlocked (2)\n");
         FFLOCK_UNLOCK(&(tail->lock));
+        //FFLOG("unlocked (1)\n");
     }
 
     return FFSUCCESS;
@@ -79,29 +82,31 @@ int ffqman_pop(ffqman_t * queue, void ** ptr){
         head = queue->head;
         head_next = queue->head->next;
     
+        //FFLOG("locking %i (1)\n", head->lock);
         FFLOCK_LOCK(&(head->lock));
+        //FFLOG("locking %i (2)\n", head_next->lock);
         FFLOCK_LOCK(&(head_next->lock));
-        //FFLOG("locked\n");
+        //FFLOG("locked!\n");
     
         if (queue->head == head && queue->head->next == head_next){
-            if (queue->head == queue->head_sentinel) {
+            if (head_next == queue->tail_sentinel) {
                 //FFLOG("queue %p is empty --> returning NULL\n", queue);
                 *ptr = NULL;
             }else{
                 //FFLOG("queue %p is not EMPTY --> returning %p\n", queue, queue->head->ptr);
-                el = queue->head;
+                el = head_next;
                 *ptr = el->ptr;
-                queue->head = queue->head->next;
-                if (queue->head == queue->tail_sentinel){
-                    queue->head = queue->head_sentinel;
-                    queue->tail = queue->tail_sentinel;
+                queue->head->next = head_next->next;
+                if (head_next == queue->tail){
+                    queue->tail = queue->head_sentinel;
                 }
                 ffstorage_pool_put(el);
             }
 
             FFLOCK_UNLOCK(&(head_next->lock));
+            //FFLOG("unlocked (2)\n");
             FFLOCK_UNLOCK(&(head->lock));
-            //FFLOG("unlocked\n");
+            //FFLOG("unlocked (1)\n");
             return FFSUCCESS;
         }   
     
