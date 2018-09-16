@@ -9,9 +9,7 @@ static pool_h schedule_pool;
 static uint64_t schedid = 0;
 
 int ffschedule_init(){
-
     schedule_pool = ffstorage_pool_create(sizeof(ffschedule_t), INITIAL_FFSCHEDULE_POOL_COUNT, NULL);
-
     return FFSUCCESS;
 }
 
