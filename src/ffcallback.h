@@ -11,7 +11,7 @@ typedef struct ffcallback{
     void * arg;
 } ffcallback_t;
 
-int ffcallback_post(ffop_t * op, ffbuffer_set_t * mem);
+int ffcallback_execute(ffop_t * op, ffbuffer_set_t * mem);
 int ffcallback_tostring(ffop_t * op, char * str, int len);
 int ffcallback_finalize(ffop_t * op);
 

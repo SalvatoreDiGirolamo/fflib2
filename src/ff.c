@@ -8,6 +8,7 @@
 #include "ffschedule.h"
 #include "ffbuffer.h"
 #include "ffop_default_progresser.h"
+#include "ffop_scheduler.h"
 #include "utils/ffqman.h"
 
 #ifdef FFDEBUG
@@ -28,12 +29,12 @@ int ffinit(int * argc, char *** argv){
         
     /* ffnop is internal */
     ff.impl.ops[FFNOP].init = NULL;
-    ff.impl.ops[FFNOP].post = ffnop_post; 
+    ff.impl.ops[FFNOP].exec = ffnop_execute; 
     ff.impl.ops[FFNOP].cancel = ffnop_cancel;    
 
     /* ffcallback is internal */
     ff.impl.ops[FFCALLBACK].init = NULL;
-    ff.impl.ops[FFCALLBACK].post = ffcallback_post;
+    ff.impl.ops[FFCALLBACK].exec = ffcallback_execute;
     
     /* tostring is internal */
     ff.impl.ops[FFSEND].tostring = ffsend_tostring;
@@ -51,9 +52,10 @@ int ffinit(int * argc, char *** argv){
 
     ffstorage_init();
     ffbuffer_init();
+    ffqman_init();
     ffop_init();
     ffschedule_init();
-    ffqman_init();
+    ffop_scheduler_init();
     
     /* register default progresser (before progress thread!)*/
     ffprogresser_t default_progresser;
@@ -97,6 +99,7 @@ int fffinalize(){
     ffop_finalize();
     ffbuffer_finalize();
     ffstorage_finalize();
+    ffop_scheduler_finalize();
     ffqman_finalize();  
 
     return FFSUCCESS;

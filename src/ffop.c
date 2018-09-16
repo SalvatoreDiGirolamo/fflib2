@@ -1,9 +1,9 @@
-
 #include "ffop.h"
 #include "ffsend.h"
 #include "ffrecv.h"
 #include "ffstorage.h"
 #include "ffop_default_progresser.h"
+#include "ffop_scheduler.h"
 #include <sched.h>
 
 #define INITIAL_FFOP_POOL_COUNT 1024
@@ -21,7 +21,6 @@ int ffop_init(){
 
     return FFSUCCESS;
 }
-
 
 int ffop_finalize(){   
     ffstorage_pool_destroy(op_pool);
@@ -49,12 +48,15 @@ int ffop_tostring(ffop_h _op, char * str, int len){
 
 int ffop_post(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
-    return ffop_post_with_version(_op, op->version);
+    return ffop_scheduler_schedule(op);
 }
 
-int ffop_post_with_version(ffop_h _op, uint32_t op_version){
+int ffop_execute(ffop_t * op){
+    return ffop_execute_with_version(op, op->version);
+}
+
+int ffop_execute_with_version(ffop_t * op, uint32_t op_version){
     int res;
-    ffop_t * op = (ffop_t *) _op;
 
 #ifdef FFDEBUG
     if (op->instance.dep_left>0) FFLOG("Posting an op with dependencies left!\n");
@@ -79,14 +81,14 @@ int ffop_post_with_version(ffop_h _op, uint32_t op_version){
     }
 
     if (op->in_flight){
-        ffop_cancel(_op);
+        ffop_cancel((ffop_h) op);
     }
     op->in_flight = 1;
     op->instance.completed = 0;
 
     FFLOG("Posting op %lu\n", op->id);
     //__sync_fetch_and_add(&(op->instance.posted_version), 1);
-    res = ff.impl.ops[op->type].post(op, NULL);
+    res = ff.impl.ops[op->type].exec(op, NULL);
 
     /* check if the operation has been immediately completed */
     if (res==FFCOMPLETED){ ffop_default_progresser_track(op); }
@@ -265,7 +267,7 @@ int ffop_complete(ffop_t * op){
     
         if (trigger){
             FFLOG("All dependencies of %lu are satisfied: posting it!\n", dep_op->id);
-            ffop_post_with_version((ffop_h) dep_op, dep_op_version);
+            ffop_execute_with_version(dep_op, dep_op_version);
         }else if (deps<=0){
             FFLOG("Op %lu is not going to be posted even if its deps are <=0 (%u)\n", dep_op->id, deps);    
         }

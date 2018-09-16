@@ -9,7 +9,7 @@ int ffop_gcomp_init(ffop_t * op){
 }
 
 
-int ffop_gcomp_post(ffop_t * op, ffbuffer_set_t * mem){
+int ffop_gcomp_execute(ffop_t * op, ffbuffer_set_t * mem){
     
     ffcomp_t * comp = &(op->comp);
 

@@ -1,6 +1,7 @@
 #include "ff.h"
 #include "ffprogress.h"
 #include "ffinternal.h"
+#include "ffop_scheduler.h"
 #include "ffop.h"
 
 volatile int _progresser_ready = 0;
@@ -34,6 +35,9 @@ void * progress_thread(void * args){
     _progresser_ready = 1;
     while (!ff->terminate){
         ffop_t * completed = NULL;        
+
+        /* Execute new operations */
+        FFCALLV(ffop_scheduler_execute_all(), NULL);
 
         /* Call the progressers */
         for (uint32_t i=0; i<progressers_count; i++){

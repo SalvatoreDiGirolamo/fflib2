@@ -10,7 +10,7 @@ typedef struct ffnop{
     /* nothing for now */
 } ffnop_t;
 
-int ffnop_post(ffop_t * op, ffbuffer_set_t * mem);
+int ffnop_execute(ffop_t * op, ffbuffer_set_t * mem);
 int ffnop_cancel(ffop_t * op);
 
 int ffnop_tostring(ffop_t * op, char * str, int len);

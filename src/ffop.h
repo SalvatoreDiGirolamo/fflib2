@@ -99,6 +99,7 @@ int ffop_init();
 int ffop_finalize();
 int ffop_create(ffop_t ** ptr);
 int ffop_complete(ffop_t * op);
-int ffop_post_with_version(ffop_h op, uint32_t version);
+int ffop_execute(ffop_t * op);
+int ffop_execute_with_version(ffop_t * op, uint32_t version);
 
 #endif /* _FFOP_H_ */

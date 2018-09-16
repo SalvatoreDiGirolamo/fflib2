@@ -16,7 +16,7 @@ int ffcallback(ffcb_fun_t cb, void * arg, int options, ffop_h * _op){
     return FFSUCCESS;
 }
 
-int ffcallback_post(ffop_t * op, ffbuffer_set_t * mem){
+int ffcallback_execute(ffop_t * op, ffbuffer_set_t * mem){
     FFLOG("FFCALLBACK ID: %lu\n", op->id);
     op->callback.cb((ffop_h) op, op->callback.arg);
     return FFCOMPLETED;

@@ -3,7 +3,7 @@
 #include "utils/ffarman.h"
 //#include "../utils/fflock.h"
 
-static ffop_t *    posted_ops[FFMPI_MAX_REQ];
+static ffop_t *    running_ops[FFMPI_MAX_REQ];
 static MPI_Request requests[FFMPI_MAX_REQ];
 static ffarman_t   index_manager;
 
@@ -18,7 +18,7 @@ int ffop_mpi_progresser_init(){
 
     for (int i=0; i<FFMPI_MAX_REQ; i++){
         requests[i] = MPI_REQUEST_NULL;
-        posted_ops[i] = NULL;
+        running_ops[i] = NULL;
     }
 
     return FFSUCCESS;
@@ -41,7 +41,7 @@ int ffop_mpi_progresser_track(ffop_t * op, MPI_Request req){
         return FFENOMEM;
     }
 
-    posted_ops[idx] = op;
+    running_ops[idx] = op;
     requests[idx] = req;
 #endif
     return FFSUCCESS;
@@ -49,10 +49,10 @@ int ffop_mpi_progresser_track(ffop_t * op, MPI_Request req){
 
 int ffop_mpi_progresser_release(uint32_t idx){
 #ifdef FFPROGRESS_THREAD
-    FFLOG("progresser is now UNtracking op %lu (ver: %u) with idx %u\n", posted_ops[idx]->id, posted_ops[idx]->version, idx);
+    FFLOG("progresser is now UNtracking op %lu (ver: %u) with idx %u\n", running_ops[idx]->id, running_ops[idx]->version, idx);
 
     requests[idx] = MPI_REQUEST_NULL;
-    posted_ops[idx] = NULL;
+    running_ops[idx] = NULL;
     
     //now that we finished with idx we can release it
     ffarman_put(&index_manager, idx);
@@ -73,7 +73,7 @@ int ffop_mpi_progresser_progress(ffop_t ** ready_list){
     }
     
     for (int i=0; i<outcount; i++){
-        ffop_t * readyop = posted_ops[ready_indices[i]];
+        ffop_t * readyop = running_ops[ready_indices[i]];
 
         /* mark the operation as complete */ 
         FFOP_ENQUEUE(readyop, ready_list);

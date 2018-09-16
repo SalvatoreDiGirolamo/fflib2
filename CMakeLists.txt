@@ -38,6 +38,8 @@ src/ffschedule.c
 src/ffschedule.h
 src/ffop_default_progresser.c
 src/ffop_default_progresser.h
+src/ffop_scheduler.c
+src/ffop_scheduler.h
 src/components/mpi/ffmpi.h
 src/components/mpi/ffmpi.c
 src/components/mpi/ffop_mpi.c
