@@ -1,7 +1,7 @@
 #include "ffcollectives.h"
 #include <assert.h>
 
-int ffactivation_free(ffschedule_h sched){
+int ffactivation_delete(ffschedule_h sched){
     int * buff;
     ffschedule_get_state(sched, (void **) &buff);
     free(buff);
@@ -24,7 +24,7 @@ int ffactivation(int tag, ffop_h *user_activator, ffop_h * user_activator_test, 
     ffop_h * completions = (ffop_h *) malloc(sizeof(ffop_h)*maxr);
     
     ffschedule_set_state(sched, (void *) buff);
-    ffschedule_set_delete_callback(sched, ffactivation_free);
+    ffschedule_set_delete_fun(sched, ffactivation_delete);
 
     ffop_h sched_begin_op;
     ffschedule_get_begin_op(sched, &sched_begin_op);   

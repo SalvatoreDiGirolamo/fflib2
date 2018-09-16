@@ -65,6 +65,7 @@ src/bindings/mpi_binding.h
 src/bindings/mpi_binding.c
 src/colls/ffallreduce.c
 src/colls/ffactivation.c
+src/colls/ffsolo_allreduce.c
 )
 set_target_properties(fflib PROPERTIES
     VERSION ${PROJECT_VERSION}

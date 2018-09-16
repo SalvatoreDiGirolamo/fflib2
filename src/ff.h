@@ -61,8 +61,10 @@ typedef uint64_t ffop_h;
 typedef uint64_t ffschedule_h;
 typedef uint64_t ffbuffer_h;
 
-typedef int (*ffschedule_post_callback_t)(ffschedule_h sched);
-typedef int (*ffschedule_delete_callback_t)(ffschedule_h sched);
+typedef int (*ffschedule_post_fun_t)(ffschedule_h sched);
+typedef int (*ffschedule_delete_fun_t)(ffschedule_h sched);
+typedef int (*ffschedule_wait_fun_t)(ffschedule_h sched);
+typedef int (*ffschedule_test_fun_t)(ffschedule_h sched, int * flag);
 
 typedef void (*ffcb_fun_t)(ffop_h op, void * arg);
 
@@ -102,19 +104,26 @@ int ffcomp_operator_create(ffoperator_fun_t fun, int commutative, ffoperator_h *
 int ffcomp_operator_delete(ffoperator_h handle);
 
 int ffschedule_create(ffschedule_h *sched);
-int ffschedule_delete(ffschedule_h sched);
 int ffschedule_add_op(ffschedule_h sched, ffop_h op); 
 int ffschedule_post(ffschedule_h sched);
 int ffschedule_wait(ffschedule_h handle);
 int ffschedule_test(ffschedule_h handle, int * flag);
+int ffschedule_delete(ffschedule_h sched);
+int ffschedule_default_post(ffschedule_h sched);
+int ffschedule_default_wait(ffschedule_h handle);
+int ffschedule_default_test(ffschedule_h handle, int * flag);
+int ffschedule_default_delete(ffschedule_h sched);
 int ffschedule_set_state(ffschedule_h handle, void * state);
 int ffschedule_get_state(ffschedule_h handle, void ** state);
-int ffschedule_set_post_callback(ffschedule_h handle, ffschedule_post_callback_t cb);
-int ffschedule_set_delete_callback(ffschedule_h handle, ffschedule_delete_callback_t cb);
 int ffschedule_get_begin_op(ffschedule_h schedh, ffop_h *oph);
 int ffschedule_get_end_op(ffschedule_h schedh, ffop_h *oph);
+int ffschedule_set_post_fun(ffschedule_h handle, ffschedule_post_fun_t fun);
+int ffschedule_set_delete_fun(ffschedule_h handle, ffschedule_delete_fun_t fun);
+int ffschedule_set_wait_fun(ffschedule_h handle, ffschedule_wait_fun_t fun);
+int ffschedule_set_test_fun(ffschedule_h handle, ffschedule_test_fun_t fun);
 
 int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h ffoperator, ffdatatype_h datatype, int options, ffschedule_h * _sched);
 int ffactivation(int tag, ffop_h * user_activator, ffop_h * user_activator_test, ffschedule_h *_sched);
+int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h ffoperator, ffdatatype_h datatype, int options, int async, ffschedule_h * _sched);
 
 #endif /* _FF_H_ */

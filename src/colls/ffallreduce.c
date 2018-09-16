@@ -17,7 +17,7 @@ typedef struct allreduce_state{
 #ifdef FFALLREDUCE_REC_DOUBLING
 
 
-int ffallreduce_post_check(ffschedule_h sched){
+int ffallreduce_post(ffschedule_h sched){
     allreduce_state_t * state;
     ffschedule_get_state(sched, (void **) &state);
     assert(state!=NULL);    
@@ -47,11 +47,12 @@ int ffallreduce_post_check(ffschedule_h sched){
         state->count = rb_count;
     }
 
-    return FFSUCCESS;
+    
+    return ffschedule_default_post(sched);
 }
 
 
-int ffallreduce_free(ffschedule_h sched){
+int ffallreduce_delete(ffschedule_h sched){
     allreduce_state_t * state;
     ffschedule_get_state(sched, (void **) &state);
     assert(state!=NULL);    
@@ -66,7 +67,7 @@ int ffallreduce_free(ffschedule_h sched){
         ffbuffer_delete(state->rcvbuff);
     }
     
-    return FFSUCCESS;
+    return ffschedule_default_delete(sched);
 }
 
 //Recursive doubling
@@ -103,7 +104,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperat
         else state->sndbuff = FFBUFF_NONE;
         state->rcvbuff = *((ffbuffer_h *) rcvbuff);
         state->free_sr_buff = 0;
-        ffschedule_set_post_callback(sched, ffallreduce_post_check);
+        ffschedule_set_post_fun(sched, ffallreduce_post);
     }else{
         FFLOG("Allocating buffers\n");
         if (!in_place) ffbuffer_create(sndbuff, count, datatype, 0, &(state->sndbuff));
@@ -123,7 +124,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperat
     }
 
     ffschedule_set_state(sched, (void *) state);
-    ffschedule_set_delete_callback(sched, ffallreduce_free);
+    ffschedule_set_delete_fun(sched, ffallreduce_delete);
 
     ffop_h send=FFNONE, recv=FFNONE, prev_send=FFNONE, comp=FFNONE;
     uint32_t r=0;
