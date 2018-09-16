@@ -62,7 +62,7 @@ int main(int argc, char * argv[]){
 
     // set the callback op to be called once the last op of the allreduce schedule completes
     ffschedule_get_end_op(allreduce, &allreduce_completion_op);
-    ffop_hb(allreduce_completion_op, cb_op);   
+    ffop_hb(allreduce_completion_op, cb_op, 0);   
 
     /* end callback setup */
 
