@@ -70,7 +70,7 @@ int ffbuffer_resize(ffbuffer_h handle, void * addr, uint32_t new_count, ffdataty
     size_t new_unitsize, old_unitsize;
     ffdatatype_size(new_datatype, &new_unitsize);
     ffdatatype_size(ffbuff->datatype, &old_unitsize);
-    FFLOG("Resizing buffers (addr: %p; size: %lu)\n", ffbuff->ptr, new_unitsize*new_count);
+    FFLOG("Resizing buffers (addr: %p; count: %u; datatype: %u; datatype size: %lu; size: %lu)\n", ffbuff->ptr, new_count, new_datatype, new_unitsize, new_unitsize*new_count);
 
     if (addr==NULL){
         if (ffbuff->ptr==NULL || new_count * new_unitsize > ffbuff->count*old_unitsize){

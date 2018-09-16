@@ -64,6 +64,8 @@ typedef uint64_t ffbuffer_h;
 typedef int (*ffschedule_post_callback_t)(ffschedule_h sched);
 typedef int (*ffschedule_delete_callback_t)(ffschedule_h sched);
 
+typedef void (*ffcb_fun_t)(ffop_h op, void * arg);
+
 int ffinit(int * argc, char *** argv);
 int fffinalize();
 
@@ -91,6 +93,7 @@ int ffrecv(void * addr, int count, ffdatatype_h datatype, int source, int16_t ta
 int ffrecv_b(ffbuffer_h, int source, int16_t tag, int options, ffop_h * _op);
 
 int ffnop(int options, ffop_h * handle);
+int ffcallback(ffcb_fun_t cb, void * arg, int options, ffop_h * _op);
 
 typedef int (*ffoperator_fun_t)(void*, void*, void*, uint32_t, ffdatatype_h);
 int ffcomp(void * addr1, void * addr2, int count, ffdatatype_h datatype, ffoperator_h ffoperator, int options, void * addr3, ffop_h * op);
@@ -112,8 +115,6 @@ int ffschedule_get_begin_op(ffschedule_h schedh, ffop_h *oph);
 int ffschedule_get_end_op(ffschedule_h schedh, ffop_h *oph);
 
 int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h ffoperator, ffdatatype_h datatype, int options, ffschedule_h * _sched);
-
 int ffactivation(int tag, ffop_h * user_activator, ffop_h * user_activator_test, ffschedule_h *_sched);
-
 
 #endif /* _FF_H_ */
