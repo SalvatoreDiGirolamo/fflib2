@@ -3,6 +3,7 @@
 typedef struct solo_allreduce_state{
     ffschedule_h activation_schedule;
     ffschedule_h allreduce_schedule;
+    ffschedule_h solo_limiter;
     ffop_h activation_op;    //op that has to be posted to activate the schedule locally
     ffop_h activation_test;  //op that needs to be tested to check if a local activation completed (two activations should not overlap)
 } solo_allreduce_state_t;
@@ -32,20 +33,42 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     ffop_h allreduce_end;    //allreduce schedule end op
 
     //create the activation schedule
-    ffactivation(0, &(state->activation_op), &(state->activation_test), &(state->activation_schedule));
+    ffop_h activation_schedule_test, activation_schedule_link, activation_schedule_op;
+    ffactivation(0, &(activation_schedule_op), &activation_schedule_test, &(state->activation_schedule));
     ffschedule_get_begin_op(state->activation_schedule, &activation_root);
-    ffschedule_get_end_op(state->activation_schedule, &activation_link);
+    ffschedule_get_end_op(state->activation_schedule, &activation_schedule_link);
     
     //create the allreduce schedule
     ffallreduce(sndbuff, rcvbuff, count, tag, operator, datatype, options, &(state->allreduce_schedule));
     ffschedule_get_begin_op(state->allreduce_schedule, &allreduce_begin);
     ffschedule_get_end_op(state->allreduce_schedule, &allreduce_end);
     
+    ffnop(0, state->limitator_sync_allreduce);
+
+    //create the solo limiter
+    ffsolo_limiter(async, activation_schedule_op, state->limitator_sync_allreduce, &(state->solo_limiter));
+
+    //allreduce can be activated by activation schedule (remotely or locally) or by the limiter (if it calls the sync version)
+    ffnop(FFOP_DEP_OR, &(state->allreduce_activation);
+    ffop_hb(activation_schedule_link, state->allreduce_activation, 0);
+    ffop_hb(state->limitator_sync_allreduce, state->allreduce_activation, 0);
+    
+    //link the allreduce schedule
+    ffop_hb(state->allreduce_activation, allreduce_begin, 0);
+    
+    //the local test is satisfied if the activation schedule is satisfied or if the allreduce gets activated synch.sly. 
+    ffnop
+
     //the allreduce schedule is activated by the activation schedule
     ffop_hb(activation_link, allreduce_begin, 0);
 
     //add the feedback link to re-execute the schedule once the current one completes
     ffop_hb(allreduce_end, activation_root, FFDEP_IGNORE_VERSION);
+
+
+    //create activation test (this could be through the activation schedule OR the limiter could just skip it and go to the allreduce)
+    ffnop(FFOP_DEP_OR, &(state->activation_test));
+    ffop_hb(activation_schedule_test, state->activation_test, FFDEP_IGNORE_VERSION);
 
     //FIXME: TODO
     // 1) add multiple buffers
