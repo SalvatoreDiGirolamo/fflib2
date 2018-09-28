@@ -66,6 +66,7 @@ src/bindings/mpi_binding.c
 src/colls/ffallreduce.c
 src/colls/ffactivation.c
 src/colls/ffsolo_allreduce.c
+src/colls/ffsolo_limiter.c
 )
 set_target_properties(fflib PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -84,6 +85,8 @@ install(TARGETS fflib
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES ${CMAKE_BINARY_DIR}/fflib.pc
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+
+configure_file(test/test_activation.sh test/ COPYONLY)
 
 #--------------------------------------------------
 # Tests

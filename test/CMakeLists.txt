@@ -23,6 +23,7 @@ set(TEST_C_SRCS
   activation_tree
   activation_tree_multiple
   first_dep
+  limiter
 )
 
 set(TEST_CPP_SRCS

@@ -12,7 +12,7 @@ int ffbuffer_create(void * addr, uint32_t count, ffdatatype_h datatype, int opti
     uint8_t selfalloc = addr==NULL;
 
     ffstorage_pool_get(buff_pool, (void **) _ffbuff);
-    ffbuffer_t * ffbuff = *((ffbuffer_t **) _ffbuff);    
+    ffbuffer_t * ffbuff = *((ffbuffer_t **) _ffbuff); 
 
     ffbuff->options = options;
     ffbuff->selfalloc = selfalloc;
@@ -101,5 +101,3 @@ int ffbuffer_init(){
 int ffbuffer_finalize(){
     return ffstorage_pool_destroy(buff_pool);
 }
-
-
