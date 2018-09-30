@@ -255,7 +255,7 @@ int ffop_complete(ffop_t * op){
             continue;
         }
 
-        uint32_t deps = __sync_add_and_fetch(&(dep_op->instance.dep_left), -1);
+        int32_t deps = __sync_add_and_fetch(&(dep_op->instance.dep_left), -1);
         FFLOG("Decreasing %lu dependencies by one: now %i (is OR dep: %u; non-persistent: %u); %lu.version (dep_op) = %u; %lu.version (op) = %u\n", dep_op->id, dep_op->instance.dep_left, (unsigned int) IS_OPT_SET(dep_op, FFOP_DEP_OR), (unsigned int) IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT), dep_op->id, dep_op_version, op->id, op_version);
 
         int trigger;
@@ -268,8 +268,8 @@ int ffop_complete(ffop_t * op){
         if (trigger){
             FFLOG("All dependencies of %lu are satisfied: posting it!\n", dep_op->id);
             ffop_execute_with_version(dep_op, dep_op_version);
-        }else if (deps<=0){
-            FFLOG("Op %lu is not going to be posted even if its deps are <=0 (%u)\n", dep_op->id, deps);    
+        }else{
+            FFLOG("Op %lu is not going to be posted: deps: %i; FFOP_DEP_OR: %u; FFOP_NON_PERSISTENT: %u; dep_op_version: %u\n", dep_op->id, deps, IS_OPT_SET(dep_op, FFOP_DEP_OR), IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT), dep_op_version);    
         }
         
     } while (op->dep_next != first_dep && satisfy_all);

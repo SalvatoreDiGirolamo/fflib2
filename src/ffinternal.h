@@ -24,26 +24,6 @@
 #define IS_OPT_SET(op, opt) (((op->options) & opt) == opt)
 
 #define CAS(PTR, OLDVAL, NEWVAL) __sync_bool_compare_and_swap(PTR, OLDVAL, NEWVAL)
-
-#ifdef FFDEBUG
-extern int dbg_myrank;
-#define FFLOG(MSG, ...) printf("[%i - %u - %u][%s:%i] "MSG, dbg_myrank, getpid(), (unsigned int) pthread_self(), __FILE__, __LINE__,  ##__VA_ARGS__)
-
-#define DOTLEN 256
-#define FFGRAPH(A, B) \
-{ \
-char dot_a[DOTLEN]; \
-char dot_b[DOTLEN]; \
-ffop_tostring(A, dot_a, DOTLEN); \
-ffop_tostring(B, dot_b, DOTLEN); \
-FFLOG("DOT#\"%s.%i\" -> \"%s.%i\"\n", dot_a, dbg_myrank, dot_b, dbg_myrank); \
-}
-#else
-#define FFLOG(MSG, ...) 
-#define FFGRAPH(A, B) 
-#endif
-
-
 #define MIN(a, b, c) (((a<b ? a : b) < c) ? (a<b ? a : b) : c)
 
 #define FFSEND      0
@@ -52,6 +32,9 @@ FFLOG("DOT#\"%s.%i\" -> \"%s.%i\"\n", dot_a, dbg_myrank, dot_b, dbg_myrank); \
 #define FFNOP       3
 #define FFCALLBACK  4
 #define FFMAX_IDX   5 /* not actual op, just boundary for ops indexes */
+
+#define TAG_VERSION_MASK    0x0000FFFF
+#define TAG_TYPE_MASK       0x00000001
 
 typedef int ffdatatype_t; /* for now the internal datatype type is an int as well */
 typedef uint32_t ffpeer_t;

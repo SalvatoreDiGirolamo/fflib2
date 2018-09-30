@@ -11,6 +11,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <pthread.h>
 
 #define FFOP_MPI
 
@@ -49,11 +51,30 @@
 #define FFOP_DEP_FIRST          (1 << 8)
 #define FFDEP_NO_AUTOPOST       (1 << 9)
 #define FFDEP_IGNORE_VERSION    (1 << 10)
+#define FFSHADOW_TAG            (1 << 11)
 
 /* Our NULL */
 #define FFNONE              -1
 #define FFBUFF_NONE         0x0
 #define FFINPLACE           ((void *) 0x1)
+
+#ifdef FFDEBUG
+extern int dbg_myrank;
+#define FFLOG(MSG, ...) printf("[%i - %u - %u][%s:%i] "MSG, dbg_myrank, getpid(), (unsigned int) pthread_self(), __FILE__, __LINE__,  ##__VA_ARGS__)
+
+#define DOTLEN 256
+#define FFGRAPH(A, B) \
+{ \
+char dot_a[DOTLEN]; \
+char dot_b[DOTLEN]; \
+ffop_tostring(A, dot_a, DOTLEN); \
+ffop_tostring(B, dot_b, DOTLEN); \
+FFLOG("DOT#\"%s.%i\" -> \"%s.%i\"\n", dot_a, dbg_myrank, dot_b, dbg_myrank); \
+}
+#else
+#define FFLOG(MSG, ...) 
+#define FFGRAPH(A, B) 
+#endif
 
 typedef int ffdatatype_h;
 typedef int ffoperator_h;
@@ -61,6 +82,7 @@ typedef uint64_t ffop_h;
 typedef uint64_t ffschedule_h;
 typedef uint64_t ffbuffer_h;
 
+typedef int (*ffschedule_start_fun_t)(ffschedule_h sched);
 typedef int (*ffschedule_post_fun_t)(ffschedule_h sched);
 typedef int (*ffschedule_delete_fun_t)(ffschedule_h sched);
 typedef int (*ffschedule_wait_fun_t)(ffschedule_h sched);
@@ -105,6 +127,7 @@ int ffcomp_operator_delete(ffoperator_h handle);
 
 int ffschedule_create(ffschedule_h *sched);
 int ffschedule_add_op(ffschedule_h sched, ffop_h op); 
+int ffschedule_start(ffschedule_h sched);
 int ffschedule_post(ffschedule_h sched);
 int ffschedule_wait(ffschedule_h handle);
 int ffschedule_test(ffschedule_h handle, int * flag);
@@ -117,13 +140,14 @@ int ffschedule_set_state(ffschedule_h handle, void * state);
 int ffschedule_get_state(ffschedule_h handle, void ** state);
 int ffschedule_get_begin_op(ffschedule_h schedh, ffop_h *oph);
 int ffschedule_get_end_op(ffschedule_h schedh, ffop_h *oph);
+int ffschedule_set_start_fun(ffschedule_h handle, ffschedule_start_fun_t fun);
 int ffschedule_set_post_fun(ffschedule_h handle, ffschedule_post_fun_t fun);
 int ffschedule_set_delete_fun(ffschedule_h handle, ffschedule_delete_fun_t fun);
 int ffschedule_set_wait_fun(ffschedule_h handle, ffschedule_wait_fun_t fun);
 int ffschedule_set_test_fun(ffschedule_h handle, ffschedule_test_fun_t fun);
 
 int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h ffoperator, ffdatatype_h datatype, int options, ffschedule_h * _sched);
-int ffactivation(int tag, ffop_h * user_activator, ffop_h * user_activator_test, ffschedule_h *_sched);
+int ffactivation(int options, int tag, ffop_h * user_activator, ffop_h * user_activator_test, ffschedule_h *_sched);
 int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h ffoperator, ffdatatype_h datatype, int options, int async, ffschedule_h * _sched);
 int ffsolo_limiter(int num_async, ffop_h * async_op, ffop_h * sync_op, ffschedule_h * _sched);
 

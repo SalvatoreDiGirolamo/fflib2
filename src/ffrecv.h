@@ -11,6 +11,7 @@ typedef struct ffrecv{
     ffbuffer_t * buffer;
     uint16_t tag;
     uint8_t flags;
+    uint8_t tag_type;
 
     /* transport */
     ffimpl_recv_data_t transport;

@@ -4,14 +4,14 @@ typedef struct solo_allreduce_state{
     ffschedule_h activation_schedule;
     ffschedule_h allreduce_schedule;
     ffschedule_h solo_limiter;
-    ffop_h activation_op;    //op that has to be posted to activate the schedule locally
-    ffop_h activation_test;  //op that needs to be tested to check if a local activation completed (two activations should not overlap)
+    ffop_h allreduce_activation_test;  //op that needs to be tested to check if a local activation completed (two activations should not overlap)
 } solo_allreduce_state_t;
 
 int ffsolo_allreduce_post(ffschedule_h sched);
 int ffsolo_allreduce_wait(ffschedule_h sched);
 int ffsolo_allreduce_test(ffschedule_h sched, int * flag);
 int ffsolo_allreduce_delete(ffschedule_h sched);
+int ffsolo_allreduce_start(ffschedule_h sched);
 
 int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h operator, ffdatatype_h datatype, int options, int async, ffschedule_h * _sched){
 
@@ -21,80 +21,83 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     FFCALL(ffschedule_create(&sched));
     ffschedule_set_state(sched, state);
  
+    ffschedule_set_start_fun(sched, ffsolo_allreduce_start);
     ffschedule_set_post_fun(sched, ffsolo_allreduce_post);
     ffschedule_set_wait_fun(sched, ffsolo_allreduce_wait);
     ffschedule_set_test_fun(sched, ffsolo_allreduce_test);
     ffschedule_set_delete_fun(sched, ffsolo_allreduce_delete);
    
-    ffop_h activation_link;  //op that is automatically posted when the activation schedule completes (locally or remotely)    
-    ffop_h activation_root;  //activation schedule root op
-
-    ffop_h allreduce_begin;  //allreduce schedule root op
-    ffop_h allreduce_end;    //allreduce schedule end op
-
     //create the activation schedule
-    ffop_h activation_schedule_test, activation_schedule_link, activation_schedule_op;
-    ffactivation(0, &(activation_schedule_op), &activation_schedule_test, &(state->activation_schedule));
-    ffschedule_get_begin_op(state->activation_schedule, &activation_root);
+    ffop_h activation_schedule_test, activation_schedule_link, activation_schedule_op, activation_schedule_root;
+    ffactivation(FFSHADOW_TAG, 0, &activation_schedule_op, &activation_schedule_test, &(state->activation_schedule));
+    ffschedule_get_begin_op(state->activation_schedule, &activation_schedule_root);
     ffschedule_get_end_op(state->activation_schedule, &activation_schedule_link);
     
     //create the allreduce schedule
+    ffop_h allreduce_begin, allreduce_end;  
     ffallreduce(sndbuff, rcvbuff, count, tag, operator, datatype, options, &(state->allreduce_schedule));
     ffschedule_get_begin_op(state->allreduce_schedule, &allreduce_begin);
     ffschedule_get_end_op(state->allreduce_schedule, &allreduce_end);
     
-    ffnop(0, state->limitator_sync_allreduce);
-
     //create the solo limiter
-    ffsolo_limiter(async, activation_schedule_op, state->limitator_sync_allreduce, &(state->solo_limiter));
+    ffop_h limiter_async, limiter_sync;
+    ffsolo_limiter(async, &limiter_async, &limiter_sync, &(state->solo_limiter));
 
-    //allreduce can be activated by activation schedule (remotely or locally) or by the limiter (if it calls the sync version)
-    ffnop(FFOP_DEP_OR, &(state->allreduce_activation);
-    ffop_hb(activation_schedule_link, state->allreduce_activation, 0);
-    ffop_hb(state->limitator_sync_allreduce, state->allreduce_activation, 0);
-    
-    //link the allreduce schedule
-    ffop_hb(state->allreduce_activation, allreduce_begin, 0);
-    
-    //the local test is satisfied if the activation schedule is satisfied or if the allreduce gets activated synch.sly. 
-    ffnop
+    //create test op: the activation of a solo allreduce completes if the activation schedule completes
+    //OR the limiter bypass the activation schedule and goes to the (sync) allreduce directly 
+    ffnop(FFOP_DEP_OR, &(state->allreduce_activation_test));
+    ffop_hb(activation_schedule_test, state->allreduce_activation_test, FFDEP_IGNORE_VERSION);
+    ffop_hb(limiter_sync, state->allreduce_activation_test, FFDEP_IGNORE_VERSION);
 
-    //the allreduce schedule is activated by the activation schedule
-    ffop_hb(activation_link, allreduce_begin, 0);
+    //the limiter activates the activation schedule on its async path
+    ffop_hb(limiter_async, activation_schedule_op, FFDEP_IGNORE_VERSION);
+
+    //creae the activation op: the solo allreduce is activated by the activation schedule 
+    //OR by the limiter directly if the sync version is wanted
+    ffop_h allreduce_activate;
+    ffnop(FFOP_DEP_OR, &allreduce_activate);
+    ffop_hb(activation_schedule_link, allreduce_activate, FFDEP_IGNORE_VERSION);
+    ffop_hb(limiter_sync, allreduce_activate, FFDEP_IGNORE_VERSION);
+
+    //allreduce activation op activates the allreduce
+    ffop_hb(allreduce_activate, allreduce_begin, 0);
 
     //add the feedback link to re-execute the schedule once the current one completes
-    ffop_hb(allreduce_end, activation_root, FFDEP_IGNORE_VERSION);
+    ffop_hb(allreduce_end, activation_schedule_root, FFDEP_IGNORE_VERSION);
 
-
-    //create activation test (this could be through the activation schedule OR the limiter could just skip it and go to the allreduce)
-    ffnop(FFOP_DEP_OR, &(state->activation_test));
-    ffop_hb(activation_schedule_test, state->activation_test, FFDEP_IGNORE_VERSION);
+    //add the created ops to the schedule so we can delete it then
+    ffschedule_add_op(sched, allreduce_activate);
 
     //FIXME: TODO
     // 1) add multiple buffers
-    // 2) add solo async limiter (giving sense to the async parameter)
 
     *_sched = sched;
     return FFSUCCESS;  
 }
 
+int ffsolo_allreduce_start(ffschedule_h sched){
+    solo_allreduce_state_t * state;
+    ffschedule_get_state(sched, (void **) &state);
+    return ffschedule_post(state->activation_schedule);
+}
+
 int ffsolo_allreduce_post(ffschedule_h sched){
     solo_allreduce_state_t * state;
     ffschedule_get_state(sched, (void **) &state);
-    return ffop_post(state->activation_op);
+    return ffschedule_post(state->solo_limiter);
 }
 
 int ffsolo_allreduce_wait(ffschedule_h sched){
     solo_allreduce_state_t * state;
     ffschedule_get_state(sched, (void **) &state);
-    FFCALLV(ffop_wait(state->activation_test), FFERROR);
+    FFCALLV(ffop_wait(state->allreduce_activation_test), FFERROR);
     return ffschedule_wait(state->allreduce_schedule);
 }
 
 int ffsolo_allreduce_test(ffschedule_h sched, int * flag){
     solo_allreduce_state_t * state;
     ffschedule_get_state(sched, (void **) &state);
-    ffop_test(state->activation_test, flag);
+    ffop_test(state->allreduce_activation_test, flag);
     if (*flag){
         ffschedule_test(state->allreduce_schedule, flag);
     }
@@ -106,7 +109,9 @@ int ffsolo_allreduce_delete(ffschedule_h sched){
     ffschedule_get_state(sched, (void **) &state);
     ffschedule_delete(state->activation_schedule);
     ffschedule_delete(state->allreduce_schedule);
+    ffschedule_delete(state->solo_limiter);
+    ffschedule_default_delete(sched); //to free the ops inside the schedule and the schedule itself
+    free(state);
     //no need to delete the ops in state since they are part of the activation schedule
     return FFSUCCESS;
 }
-

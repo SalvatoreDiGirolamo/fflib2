@@ -21,7 +21,7 @@ int ffop_mpi_send_execute(ffop_t * op, ffbuffer_set_t * mem){
     void * buffer;
     GETBUFFER(send->buffer, mem, buffer)
 
-    uint32_t tag = (send->tag << 16) | op->version;
+    uint32_t tag =  (send->tag << 16) | ((op->version & TAG_VERSION_MASK) << 1) | (send->tag_type & TAG_TYPE_MASK);
     FFLOG("MPI_Isend count: %u; datatype: %u; dest: %u; user tag: %hu; real tag: %u buffer: %p\n", send->buffer->count, send->buffer->datatype, send->peer, send->tag, tag, buffer);
     res = MPI_Isend(buffer, send->buffer->count, 
             datatype_translation_table[send->buffer->datatype], send->peer, 

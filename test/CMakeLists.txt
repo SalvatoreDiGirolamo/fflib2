@@ -24,6 +24,7 @@ set(TEST_C_SRCS
   activation_tree_multiple
   first_dep
   limiter
+  solo_allreduce_single
 )
 
 set(TEST_CPP_SRCS

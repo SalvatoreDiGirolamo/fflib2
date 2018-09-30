@@ -22,6 +22,8 @@ int ffschedule_create(ffschedule_h * handle){
     (*sched)->id                = schedid++;   
     (*sched)->state             = NULL;
 
+    //start and post are the same unless otherwise defined (this distinction makes sense only for solo)
+    (*sched)->start_fun         = ffschedule_default_post;
     (*sched)->post_fun          = ffschedule_default_post;
     (*sched)->delete_fun        = ffschedule_default_delete;
     (*sched)->wait_fun          = ffschedule_default_wait;
@@ -40,6 +42,11 @@ int ffschedule_delete(ffschedule_h handle){
     ffschedule_t * sched = (ffschedule_t *) handle; 
     return sched->delete_fun(handle);
 }   
+
+int ffschedule_start(ffschedule_h handle){
+    ffschedule_t * sched = (ffschedule_t *) handle; 
+    return sched->start_fun(handle);
+}
 
 int ffschedule_post(ffschedule_h handle){
     ffschedule_t * sched = (ffschedule_t *) handle; 
@@ -61,6 +68,11 @@ int ffschedule_test(ffschedule_h handle, int * flag){
 
 int ffschedule_default_delete(ffschedule_h handle){
     ffschedule_t * sched = (ffschedule_t *) handle; 
+    while (sched->oplist!=NULL){
+        ffop_t * op = sched->oplist;
+        sched->oplist = op->sched_next;
+        ffop_free((ffop_h) op);
+    }
     return ffstorage_pool_put(sched);
 }
 
@@ -97,6 +109,12 @@ int ffschedule_default_test(ffschedule_h handle, int * flag){
 int ffschedule_set_post_fun(ffschedule_h handle, ffschedule_post_fun_t fun){
     ffschedule_t * sched = (ffschedule_t *) handle; 
     sched->post_fun = fun;
+    return FFSUCCESS;
+}
+
+int ffschedule_set_start_fun(ffschedule_h handle, ffschedule_start_fun_t fun){
+    ffschedule_t * sched = (ffschedule_t *) handle; 
+    sched->start_fun = fun;
     return FFSUCCESS;
 }
 

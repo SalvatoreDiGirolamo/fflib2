@@ -10,6 +10,8 @@ typedef struct ffsend{
     ffpeer_t peer;
     ffbuffer_t * buffer;
     uint16_t tag;
+    uint8_t tag_type;
+    
     uint8_t flags;
 
     /* transport */

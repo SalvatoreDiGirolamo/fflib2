@@ -18,7 +18,7 @@ int ffop_mpi_recv_execute(ffop_t * op, ffbuffer_set_t * mem){
     void * buffer;
     GETBUFFER(recv->buffer, mem, buffer);
 
-    uint32_t tag = (recv->tag << 16) | op->version;
+    uint32_t tag =  (recv->tag << 16) | ((op->version & TAG_VERSION_MASK) << 1) | (recv->tag_type & TAG_TYPE_MASK);
     FFLOG("MPI_Irecv count: %u; datatype: %u; source: %u; user tag: %hu; real tag: %u; buffer: %p\n", recv->buffer->count, recv->buffer->datatype, recv->peer, recv->tag, tag, buffer);
     res = MPI_Irecv(buffer, recv->buffer->count, 
             datatype_translation_table[recv->buffer->datatype], recv->peer, 

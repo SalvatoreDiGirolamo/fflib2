@@ -22,6 +22,7 @@ int ffrecv_b(ffbuffer_h buffer, int source,int16_t tag, int options, ffop_h * _o
 
     op->recv.peer = source;
     op->recv.tag = tag;
+    op->recv.tag_type = IS_OPT_SET(op, FFSHADOW_TAG); 
  
     op->recv.buffer = (ffbuffer_t *) buffer;
 

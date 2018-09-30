@@ -22,6 +22,7 @@ int ffsend_b(ffbuffer_h buffer, int dest, int16_t tag, int options, ffop_h *_op)
 
     op->send.peer = dest;
     op->send.tag = tag;
+    op->send.tag_type = IS_OPT_SET(op, FFSHADOW_TAG); 
 
     op->send.buffer = (ffbuffer_t *) buffer;
 

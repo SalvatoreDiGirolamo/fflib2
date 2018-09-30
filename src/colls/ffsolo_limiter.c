@@ -9,7 +9,7 @@ int ffsolo_limiter(int num_async, ffop_h * async_op, ffop_h * sync_op, ffschedul
     ffop_h start_op;
     ffnop(FFOP_DEP_FIRST, &start_op);
 
-    ffnop(0, async_op);
+    ffnop(FFOP_DEP_OR, async_op);
     ffnop(0, sync_op);
 
     for (int i=0; i<num_async; i++){

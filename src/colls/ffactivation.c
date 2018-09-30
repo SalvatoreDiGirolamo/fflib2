@@ -1,4 +1,5 @@
 #include "ffcollectives.h"
+#include "ffinternal.h"
 #include <assert.h>
 
 int ffactivation_delete(ffschedule_h sched){
@@ -7,7 +8,7 @@ int ffactivation_delete(ffschedule_h sched){
     free(buff);
 }
 
-int ffactivation(int tag, ffop_h *user_activator, ffop_h * user_activator_test, ffschedule_h *_sched){
+int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_activator_test, ffschedule_h *_sched){
     ffschedule_h sched;
     FFCALL(ffschedule_create(&sched));
 
@@ -29,7 +30,7 @@ int ffactivation(int tag, ffop_h *user_activator, ffop_h * user_activator_test, 
     ffop_h sched_begin_op;
     ffschedule_get_begin_op(sched, &sched_begin_op);   
 
-    ffnop(0, user_activator); 
+    ffnop(FFOP_DEP_OR, user_activator); 
     ffop_hb(sched_begin_op, *user_activator, FFDEP_NO_AUTOPOST);
 
     ffop_h prev_dep = *user_activator;
@@ -44,7 +45,7 @@ int ffactivation(int tag, ffop_h *user_activator, ffop_h * user_activator_test, 
             if (prev_dep!=FFNONE) ffop_hb(prev_dep, completion, 0);
 
             //send
-            ffsend(buff, 1, FFINT32, dst, tag, FFOP_DEP_OR, &send);
+            ffsend(buff, 1, FFINT32, dst, tag, FFOP_DEP_OR | options, &send);
             for (int i=0; i<cnt; i++){
                 ffop_hb(recvs[i], send, 0);
                 ffop_hb(send, completions[i], 0);
@@ -53,7 +54,7 @@ int ffactivation(int tag, ffop_h *user_activator, ffop_h * user_activator_test, 
             ffop_hb(send, completion, 0);
 
             //recv
-            ffrecv(buff, 1, FFINT32, dst, tag, 0, &recv);
+            ffrecv(buff, 1, FFINT32, dst, tag, options, &recv);
 
             recvs[cnt] = recv;
             completions[cnt] = completion;
@@ -81,7 +82,6 @@ int ffactivation(int tag, ffop_h *user_activator, ffop_h * user_activator_test, 
         ffschedule_add_op(sched, completions[i]);
     }
     ffschedule_add_op(sched, sched_completion);
-
 
     *_sched = sched;
 

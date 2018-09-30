@@ -28,7 +28,7 @@ int main(int argc, char * argv[]){
     ffsize(&comm_size);
 
     // create the activation tree
-    ffactivation(0, &activator, &activator_test, &sched);
+    ffactivation(0, 0, &activator, &activator_test, &sched);
     
     // get the hook to activate the op
     ffschedule_get_end_op(sched, &activation_op);
