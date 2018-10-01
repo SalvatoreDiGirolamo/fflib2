@@ -32,7 +32,7 @@ int ffop_mpi_send_execute(ffop_t * op, ffbuffer_set_t * mem){
         return FFERROR;
     }
 
-    return ffop_mpi_progresser_track(op, send->transport.mpireq);
+    return ffop_mpi_progresser_track(op, send->transport.mpireq, &(send->transport.pidx));
 }
 
 int ffop_mpi_send_wait(ffop_t * op){
@@ -47,7 +47,11 @@ int ffop_mpi_send_test(ffop_t * op, int * flag){
 
 int ffop_mpi_send_cancel(ffop_t * op){
     ffsend_t * send = &(op->send);
+
     FFLOG("Cancelling MPI_Isend (op: %lu)!\n", op->id);
+
+    ffop_mpi_progresser_release(send->transport.pidx);
+    
     MPI_Cancel(&(send->transport.mpireq));
 
     //a cancelled op needs to be waited for

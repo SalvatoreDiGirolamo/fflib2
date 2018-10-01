@@ -25,7 +25,7 @@ int ffop_mpi_recv_execute(ffop_t * op, ffbuffer_set_t * mem){
             tag, MPI_COMM_WORLD, &(recv->transport.mpireq));
 
     if (res!=MPI_SUCCESS) return FFERROR;
-    return ffop_mpi_progresser_track(op, recv->transport.mpireq);
+    return ffop_mpi_progresser_track(op, recv->transport.mpireq, &(recv->transport.pidx));
 }
 
 int ffop_mpi_recv_wait(ffop_t * op){
@@ -41,6 +41,9 @@ int ffop_mpi_recv_test(ffop_t * op, int * flag){
 int ffop_mpi_recv_cancel(ffop_t * op){
     ffrecv_t * recv = &(op->recv);
     FFLOG("Cancelling MPI_Irecv (op: %lu)!\n", op->id);
+
+    ffop_mpi_progresser_release(recv->transport.pidx);
+
     MPI_Cancel(&(recv->transport.mpireq));
 
     //a cancelled op needs to be waited for

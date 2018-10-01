@@ -5,6 +5,7 @@
 
 struct ffimpl_data {
     MPI_Request mpireq;
+    uint32_t pidx; // index in MPI progresser
 };
 
 typedef struct ffimpl_data ffimpl_send_data_t;

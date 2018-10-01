@@ -30,10 +30,11 @@ int ffop_mpi_progresser_finalize(){
     return FFSUCCESS;
 }
 
-int ffop_mpi_progresser_track(ffop_t * op, MPI_Request req){
+int ffop_mpi_progresser_track(ffop_t * op, MPI_Request req, uint32_t * save_idx){
 
 #ifdef FFPROGRESS_THREAD
     uint32_t idx = ffarman_get(&index_manager);
+    *save_idx = idx;
     FFLOG("progresser is now tracking op %lu (ver: %u) with idx %u\n", op->id, op->version, idx);
     //printf("getting idx: %i\n", idx);
     if (idx<0){

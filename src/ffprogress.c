@@ -51,6 +51,10 @@ void * progress_thread(void * args){
         }
     }       
 
+    //Synchronize the progress threads
+    //FIXME: this does not look safe :)
+    MPI_Barrier(MPI_COMM_WORLD);
+
     /* Finalize the progressers */
     for (uint32_t i=0; i<progressers_count; i++){
         FFCALLV(progressers[i].finalize(), NULL);

@@ -99,7 +99,7 @@ int ffop_execute_with_version(ffop_t * op, uint32_t op_version){
 int ffop_wait(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
 
-    FFLOG("Waiting op %lu (version: %u; wait_version: %u; waiting for: %u)\n", op->id, op->version, op->wait_version, op->wait_version+1);
+    FFLOG("Waiting op %lu (version: %u; wait_version: %u; waiting for: %u; completed: %u)\n", op->id, op->version, op->wait_version, op->wait_version+1, (unsigned int) op->instance.completed);
 
 #ifdef FFPROGRESS_THREAD
     uint32_t polls=0;
@@ -118,9 +118,11 @@ int ffop_wait(ffop_h _op){
         }
     }
 #endif
-    op->instance.completed = 0;
-    op->wait_version++;
 
+    FFLOG("Waking op from waiting for %lu (current version: %u; wait_version: %u)\n", op->id, op->version, op->wait_version);
+
+    if (op->wait_version+1 >= op->version) op->instance.completed = 0;
+    op->wait_version++;
 
     //FFLOG("Wait on %p finished: version: %u; posted version: %u; completed version: %u\n", op, op->version, op->instance.posted_version, op->instance.completed_version);
     return FFSUCCESS;

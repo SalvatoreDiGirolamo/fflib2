@@ -98,9 +98,9 @@ int fffinalize(){
     ff.impl.finalize(); 
     ffop_finalize();
     ffbuffer_finalize();
+    ffqman_finalize(); 
     ffstorage_finalize();
-    ffop_scheduler_finalize();
-    ffqman_finalize();  
+    ffop_scheduler_finalize(); 
 
     return FFSUCCESS;
 }
