@@ -52,11 +52,9 @@ int ffop_post(ffop_h _op){
 }
 
 int ffop_execute(ffop_t * op){
-    return ffop_execute_with_version(op, op->version);
-}
-
-int ffop_execute_with_version(ffop_t * op, uint32_t op_version){
     int res;
+
+    uint32_t op_version = op->version;
 
 #ifdef FFDEBUG
     if (op->instance.dep_left>0) FFLOG("Posting an op with dependencies left!\n");
@@ -269,7 +267,7 @@ int ffop_complete(ffop_t * op){
     
         if (trigger){
             FFLOG("All dependencies of %lu are satisfied: posting it!\n", dep_op->id);
-            ffop_execute_with_version(dep_op, dep_op_version);
+            ffop_post((ffop_h) dep_op);
         }else{
             FFLOG("Op %lu is not going to be posted: deps: %i; FFOP_DEP_OR: %u; FFOP_NON_PERSISTENT: %u; dep_op_version: %u\n", dep_op->id, deps, IS_OPT_SET(dep_op, FFOP_DEP_OR), IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT), dep_op_version);    
         }
