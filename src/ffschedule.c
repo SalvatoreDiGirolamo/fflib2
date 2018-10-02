@@ -136,7 +136,6 @@ void print_op(FILE * fp, ffop_t * op, char * name){
         depop = depop->next;
     } while(depop!=op->dep_first);
 
-
 #endif
 }
 

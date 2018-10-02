@@ -47,10 +47,10 @@ int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_act
             //send
             ffsend(buff, 1, FFINT32, dst, tag, FFOP_DEP_OR | options, &send);
             for (int i=0; i<cnt; i++){
-                ffop_hb(recvs[i], send, 0);
+                ffop_hb(recvs[i], send, FFDEP_IGNORE_VERSION);
                 ffop_hb(send, completions[i], 0);
             }            
-            ffop_hb(*user_activator, send, 0);
+            ffop_hb(*user_activator, send, FFDEP_IGNORE_VERSION);
             ffop_hb(send, completion, 0);
 
             //recv

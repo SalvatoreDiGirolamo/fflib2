@@ -48,6 +48,13 @@ int ffop_tostring(ffop_h _op, char * str, int len){
 
 int ffop_post(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
+
+    if (op->version>0 && IS_OPT_SET(op, FFOP_NON_PERSISTENT)){
+        FFLOG("Re-posting a non-persistent operation is not allowed!\n");
+        return FFINVALID_ARG;
+    }
+
+    op->version++;
     return ffop_scheduler_schedule(op);
 }
 
@@ -66,17 +73,6 @@ int ffop_execute(ffop_t * op){
         return FFINVALID_ARG;
     }
 #endif
-
-    if (op_version>0 && IS_OPT_SET(op, FFOP_NON_PERSISTENT)){
-        FFLOG("Re-posting a non-persistent operation is not allowed!\n");
-        return FFINVALID_ARG;
-    }
-
-    //now we decided we want to post it, check for races
-    if (!CAS(&(op->version), op_version, op_version+1)){
-        FFLOG("op %lu got already posted in the meantime (my version: %u; current version: %u)\n", op->id, op_version, op->version);
-        return FFVERSION;
-    }
 
     if (op->in_flight){
         ffop_cancel((ffop_h) op);
