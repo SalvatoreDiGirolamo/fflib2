@@ -17,6 +17,7 @@ typedef struct ffschedule{
     ffschedule_delete_fun_t delete_fun;
     ffschedule_wait_fun_t wait_fun;
     ffschedule_test_fun_t test_fun;
+    ffschedule_print_fun_t print_fun;
 } ffschedule_t;
 
 

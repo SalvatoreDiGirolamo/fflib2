@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <stdio.h>
 
 #define FFOP_MPI
 
@@ -29,7 +30,6 @@
 #define FFCHAR_CTYPE        char
 #define FFDATATYPE_NONE     5
 #define FFDATATYPE_SENTINEL 6
-
 
 /* operators */
 #define FFSUM               0
@@ -57,6 +57,8 @@
 #define FFNONE              -1
 #define FFBUFF_NONE         0x0
 #define FFINPLACE           ((void *) 0x1)
+
+#define FFOP_STR_LEN        2048
 
 #ifdef FFDEBUG
 extern int dbg_myrank;
@@ -87,6 +89,7 @@ typedef int (*ffschedule_post_fun_t)(ffschedule_h sched);
 typedef int (*ffschedule_delete_fun_t)(ffschedule_h sched);
 typedef int (*ffschedule_wait_fun_t)(ffschedule_h sched);
 typedef int (*ffschedule_test_fun_t)(ffschedule_h sched, int * flag);
+typedef int (*ffschedule_print_fun_t)(ffschedule_h handle, FILE * fp, char * name);
 
 typedef void (*ffcb_fun_t)(ffop_h op, void * arg);
 
@@ -131,11 +134,13 @@ int ffschedule_start(ffschedule_h sched);
 int ffschedule_post(ffschedule_h sched);
 int ffschedule_wait(ffschedule_h handle);
 int ffschedule_test(ffschedule_h handle, int * flag);
+int ffschedule_print(ffschedule_h handle, FILE * fp, char * name);
 int ffschedule_delete(ffschedule_h sched);
 int ffschedule_default_post(ffschedule_h sched);
 int ffschedule_default_wait(ffschedule_h handle);
 int ffschedule_default_test(ffschedule_h handle, int * flag);
 int ffschedule_default_delete(ffschedule_h sched);
+int ffschedule_default_print(ffschedule_h handle, FILE * fp, char * name);
 int ffschedule_set_state(ffschedule_h handle, void * state);
 int ffschedule_get_state(ffschedule_h handle, void ** state);
 int ffschedule_get_begin_op(ffschedule_h schedh, ffop_h *oph);
@@ -145,6 +150,7 @@ int ffschedule_set_post_fun(ffschedule_h handle, ffschedule_post_fun_t fun);
 int ffschedule_set_delete_fun(ffschedule_h handle, ffschedule_delete_fun_t fun);
 int ffschedule_set_wait_fun(ffschedule_h handle, ffschedule_wait_fun_t fun);
 int ffschedule_set_test_fun(ffschedule_h handle, ffschedule_test_fun_t fun);
+int ffschedule_set_print_fun(ffschedule_h handle, ffschedule_print_fun_t fun);
 
 int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h ffoperator, ffdatatype_h datatype, int options, ffschedule_h * _sched);
 int ffactivation(int options, int tag, ffop_h * user_activator, ffop_h * user_activator_test, ffschedule_h *_sched);

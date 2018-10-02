@@ -28,6 +28,7 @@ int ffschedule_create(ffschedule_h * handle){
     (*sched)->delete_fun        = ffschedule_default_delete;
     (*sched)->wait_fun          = ffschedule_default_wait;
     (*sched)->test_fun          = ffschedule_default_test;
+    (*sched)->print_fun         = ffschedule_default_print;
     
     ffnop(0, (ffop_h *) &((*sched)->begin_op));
     ffnop(0, (ffop_h *) &((*sched)->end_op));
@@ -63,6 +64,10 @@ int ffschedule_test(ffschedule_h handle, int * flag){
     return sched->test_fun(handle, flag);
 }
 
+int ffschedule_print(ffschedule_h handle, FILE * fp, char * name){
+    ffschedule_t * sched = (ffschedule_t *) handle; 
+    return sched->print_fun(handle, fp, name);
+}
 
 /* schedule default actions */
 
@@ -103,6 +108,59 @@ int ffschedule_default_test(ffschedule_h handle, int * flag){
     return ffop_test((ffop_h) sched->end_op, flag);
 }
 
+void print_op(FILE * fp, ffop_t * op, char * name){
+    
+
+    if (op->in_dep_count==0 && op->dep_first==NULL) return;
+#ifdef VIS
+    char buffer[FFOP_STR_LEN];
+    ffop_tostring((ffop_h) op, buffer, FFOP_STR_LEN);    
+    fprintf(fp, "##VISNODE {id: %lu, label: '%s'}\n", op->id, buffer);
+
+    ffdep_op_t * depop = op->dep_first;
+    if (depop==NULL) return;
+    do{
+        fprintf(fp, "##VISEDGE {from: %lu, to: %lu, arrows:'to'}\n", op->id, depop->op->id);
+        depop = depop->next;
+    } while(depop!=op->dep_first);
+#else
+    char buffer_op[FFOP_STR_LEN];
+    char buffer_depop[FFOP_STR_LEN];
+    ffop_tostring((ffop_h) op, buffer_op, FFOP_STR_LEN);
+
+    ffdep_op_t * depop = op->dep_first;
+    if (depop==NULL) return;
+    do{
+        ffop_tostring((ffop_h) depop->op, buffer_depop, FFOP_STR_LEN);
+        fprintf(fp, "\"%lu.%s\"->\"%lu.%s\";", op->id, buffer_op, depop->op->id, buffer_depop);
+        depop = depop->next;
+    } while(depop!=op->dep_first);
+
+
+#endif
+}
+
+int ffschedule_default_print(ffschedule_h handle, FILE * fp, char * name){
+    ffschedule_t * sched = (ffschedule_t *) handle;
+    ffop_t * op = sched->oplist;
+    
+#ifndef VIS
+    fprintf(fp, "subgraph cluster_%s{ label=\"%s\";", name, name);
+#endif
+
+    print_op(fp, sched->begin_op, name);
+    print_op(fp, sched->end_op, name);
+
+    while (op!=NULL){
+        print_op(fp, op, name);
+        op = op->sched_next;    
+    }
+#ifndef VIS
+    fprintf(fp, "}");
+#endif
+    return FFSUCCESS;
+}
+
 
 /* function setters */
 
@@ -136,6 +194,11 @@ int ffschedule_set_test_fun(ffschedule_h handle, ffschedule_test_fun_t fun){
     return FFSUCCESS;
 }
 
+int ffschedule_set_print_fun(ffschedule_h handle, ffschedule_print_fun_t fun){
+    ffschedule_t * sched = (ffschedule_t *) handle; 
+    sched->print_fun = fun;
+    return FFSUCCESS;
+}
 
 /* others FIXME: adjust nicely */
 

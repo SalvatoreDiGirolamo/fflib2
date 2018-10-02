@@ -12,6 +12,7 @@ int ffsolo_allreduce_wait(ffschedule_h sched);
 int ffsolo_allreduce_test(ffschedule_h sched, int * flag);
 int ffsolo_allreduce_delete(ffschedule_h sched);
 int ffsolo_allreduce_start(ffschedule_h sched);
+int ffsolo_allreduce_print(ffschedule_h handle, FILE * fp, char * name);
 
 int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h operator, ffdatatype_h datatype, int options, int async, ffschedule_h * _sched){
 
@@ -26,7 +27,8 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     ffschedule_set_wait_fun(sched, ffsolo_allreduce_wait);
     ffschedule_set_test_fun(sched, ffsolo_allreduce_test);
     ffschedule_set_delete_fun(sched, ffsolo_allreduce_delete);
-   
+    ffschedule_set_print_fun(sched, ffsolo_allreduce_print);
+
     //create the activation schedule
     ffop_h activation_schedule_test, activation_schedule_link, activation_schedule_op, activation_schedule_root;
     ffactivation(FFSHADOW_TAG, 0, &activation_schedule_op, &activation_schedule_test, &(state->activation_schedule));
@@ -67,6 +69,7 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
 
     //add the created ops to the schedule so we can delete it then
     ffschedule_add_op(sched, allreduce_activate);
+    ffschedule_add_op(sched, state->allreduce_activation_test);
 
     //FIXME: TODO
     // 1) add multiple buffers
@@ -103,6 +106,18 @@ int ffsolo_allreduce_test(ffschedule_h sched, int * flag){
     }
     return FFSUCCESS;
 }   
+
+int ffsolo_allreduce_print(ffschedule_h handle, FILE * fp, char * name){
+    solo_allreduce_state_t * state;
+    ffschedule_get_state(handle, (void **) &state);
+
+    ffschedule_print(state->solo_limiter, fp, "limiter");
+    ffschedule_print(state->activation_schedule, fp, "activation");
+    ffschedule_print(state->allreduce_schedule, fp, "allreduce");
+    ffschedule_default_print(handle, fp, name);
+
+    return FFSUCCESS;
+}
 
 int ffsolo_allreduce_delete(ffschedule_h sched){
     solo_allreduce_state_t * state;
