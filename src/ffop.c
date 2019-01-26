@@ -271,7 +271,7 @@ int ffop_complete(ffop_t * op){
     } while (op->dep_next != first_dep && satisfy_all);
 
     return FFSUCCESS;
-}
+} 
 
 int ffop_cancel(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
