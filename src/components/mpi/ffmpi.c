@@ -19,7 +19,7 @@ int ffmpi_init(int * argc, char *** argv){
         MPI_Init_thread(argc, argv, MPI_THREAD_MULTIPLE, &mt_level);
 
         if (mt_level!=MPI_THREAD_MULTIPLE){
-            FFLOG_ERROR("No MPI_THREAD_MULTIPLE available!\n");
+            FFLOG_ERROR("No MPI_THREAD_MULTIPLE available (application will likely segfault!)!\n");
             return FFERROR;
         }
     }

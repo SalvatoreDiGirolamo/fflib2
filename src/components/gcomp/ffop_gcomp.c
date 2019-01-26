@@ -5,6 +5,7 @@
 #include "fflocks.h"
 
 int ffop_gcomp_init(ffop_t * op){
+    FFLOG("init op: %p; op->comp: %p\n", op, &(op->comp));
     return ffop_gcomp_operator_get(op->comp.operator_type, &(op->comp.operator));
 }
 
@@ -51,6 +52,7 @@ int ffop_gcomp_execute(ffop_t * op, ffbuffer_set_t * mem){
     uint32_t size = MIN(buff1_count, buff2_count, buff3_count);
     ffdatatype_h datatype = comp->buffer1->datatype; // they are the same
 
+    FFLOG("comp: %p; comp->operator.op_fun: %p;\n", comp, comp->operator.op_fun);
     int res = comp->operator.op_fun(buffer1, buffer2, buffer3, size, datatype);
 
     if (IS_OPT_SET(op, FFCOMP_DEST_ATOMIC)){

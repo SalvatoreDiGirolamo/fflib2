@@ -14,6 +14,7 @@ int ffbuffer_create(void * addr, uint32_t count, ffdatatype_h datatype, int opti
     ffstorage_pool_get(buff_pool, (void **) _ffbuff);
     ffbuffer_t * ffbuff = *((ffbuffer_t **) _ffbuff); 
 
+    FFLOG("Creating buffer: addr: %p; count: %u; datatype: %u, ptr: %p\n", addr, count, datatype, ffbuff);
     ffbuff->options = options;
     ffbuff->selfalloc = selfalloc;
     ffbuff->count = count;
@@ -79,7 +80,7 @@ int ffbuffer_resize(ffbuffer_h handle, void * addr, uint32_t new_count, ffdataty
             if (ffbuff->ptr==NULL) { return FFENOMEM; }
         }
     }else{
-        FFLOG("Setting new buffer address to %p\n", addr);
+        FFLOG("Address has been provided: %p\n", addr);
         if (ffbuff->selfalloc) {
             FFLOG("Freeing old buffer address (selfalloc)");
             free(ffbuff->ptr);

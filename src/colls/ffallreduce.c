@@ -92,6 +92,7 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperat
    
     state->tmpbuffs = (ffbuffer_h *) malloc(sizeof(ffbuffer_h)*(maxr));
     for (int i=0; i<maxr; i++){
+        FFLOG("Allocating tmp buff %i; count: %i; datatype: %u\n", i, count, datatype);
         ffbuffer_create(NULL, count, datatype, 0, &(state->tmpbuffs[i]));
     }
     state->tmpbuffs_count = maxr;
@@ -117,6 +118,8 @@ int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperat
 
     ffbuffer_h sb = state->sndbuff;
     ffbuffer_h rb = state->rcvbuff;
+    FFLOG("sndbuff: %p; rcvbuff: %p\n", sb, rb);
+
     if (!in_place){
         ffcomp_b(sb, FFBUFF_NONE, FFIDENTITY, FFCOMP_DEST_ATOMIC, rb, &move);
     }else{

@@ -30,7 +30,7 @@ int ffcomp_b(ffbuffer_h buffer1, ffbuffer_h buffer2, ffoperator_h ffoperator, in
     op->comp.buffer2 = (ffbuffer_t *) buffer2;
     op->comp.buffer3 = (ffbuffer_t *) buffer3;
 
-    FFLOG("FFCOMP ID: %lu; count: %i; datatype: %i; operator: %i; options: %i\n", op->id, op->comp.buffer1->count, op->comp.buffer1->datatype, ffoperator, options);
+    FFLOG("FFCOMP ID: %lu (%p); buffer1: %p; count: %i; datatype: %i; operator: %i; options: %i\n", op->id, &(op->comp), op->comp.buffer1, op->comp.buffer1->count, op->comp.buffer1->datatype, ffoperator, options);
 
     op->comp.operator_type = ffoperator;
     return ff.impl.ops[FFCOMP].init(op);

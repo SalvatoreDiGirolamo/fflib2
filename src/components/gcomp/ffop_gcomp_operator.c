@@ -79,6 +79,7 @@ int ffop_gcomp_operator_init(){
     operators[FFIDENTITY].idx = FFIDENTITY;
     operators[FFIDENTITY].op_fun = ffop_gcomp_operator_copy;
 
+    FFLOG("identity fun ptr: %p\n", operators[FFIDENTITY].op_fun);
 
     if (ffarman_create(FFMAX_CUSTOM_OPERATORS, &custom_idx)!=FFSUCCESS){
         return FFERROR;
@@ -93,20 +94,24 @@ int ffop_gcomp_operator_finalize(){
 
 int ffop_gcomp_operator_get(ffoperator_h opidx, ffop_gcomp_operator_t * opdescr){
     
+    FFLOG("opidx: %u; opdescr: %p\n", opidx, opdescr);
     if (opidx<0) return FFINVALID_ARG;
 
     /* copy the descriptor */
     if (opidx < FFOPERATOR_SENTINEL){
         *opdescr = operators[opidx]; 
+        FFLOG("op_fun: %p\n", opdescr->op_fun);
         return FFSUCCESS;
     }
 
     opidx = opidx - FFCUSTOM;
     if (opidx < FFMAX_CUSTOM_OPERATORS){
         *opdescr = custom_operators[opidx];
+        FFLOG("op_fun: %p\n", opdescr->op_fun);
         return FFSUCCESS;
     }
 
+    FFLOG("Error: no operator found!\n");
     return FFINVALID_ARG;
 }
 
