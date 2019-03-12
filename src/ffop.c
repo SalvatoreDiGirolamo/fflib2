@@ -6,8 +6,8 @@
 #include "ffop_scheduler.h"
 #include <sched.h>
 
-#define INITIAL_FFOP_POOL_COUNT 1024
-#define INITIAL_FFDEP_OP_POOL_COUNT 1024
+#define INITIAL_FFOP_POOL_COUNT 8192
+#define INITIAL_FFDEP_OP_POOL_COUNT 8192
 
 static pool_h op_pool;
 static pool_h dep_op_pool;
@@ -37,6 +37,15 @@ int ffop_free(ffop_h _op){
     FFMUTEX_DESTROY(op->mutex);
     FFCOND_DESTROY(op->cond);
 #endif
+        
+    ffdep_op_t *dep = op->dep_first;
+    while (dep!=NULL){
+        ffdep_op_t *dep_next = dep->next;
+        ffstorage_pool_put(dep);
+        if (dep==op->dep_last) dep = NULL;
+        else dep = dep_next;
+    }
+
     return ffstorage_pool_put(op);
 }
 

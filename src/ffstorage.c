@@ -1,7 +1,9 @@
 
 #include "ffstorage.h"
 #include "utils/ffarman.h"
-#include "assert.h"
+#include <assert.h>
+
+//#define POOL_USE_MALLOC
 
 static ffpool_t pools[MAX_POOLS];
 static uint32_t next_free_pool;
@@ -20,11 +22,15 @@ int ffstorage_finalize(){
 }
 
 int alloc_pool_internal(uint32_t poolid, size_t elem_size, uint32_t count){
+#ifndef POOL_USE_MALLOC
+    void * old_mem =  pools[poolid].mem;
+    pools[poolid].mem = realloc(pools[poolid].mem, (sizeof(ffmem_block_t) + elem_size)*count);
+    assert(old_mem == NULL || old_mem == pools[poolid].mem);
+    assert(pools[poolid].mem!=NULL);
 
-    pools[poolid].mem = realloc(pools[poolid].mem, (sizeof(ffmem_block_t) + elem_size)*count); 
     pools[poolid].head = pools[poolid].mem;
 
-    //FFLOG("head: %p\n", pools[poolid].head);
+    FFLOG("alloc_pool_internal: head: %p; old_mem_ptr: %p; new_mem_ptr: %p\n", pools[poolid].head, old_mem, pools[poolid].mem);
     for (uint32_t i=pools[poolid].curr_size; i < count - 1; i++){
         
         GET(pools[poolid], i)->next = GET(pools[poolid], i+1);
@@ -44,12 +50,17 @@ int alloc_pool_internal(uint32_t poolid, size_t elem_size, uint32_t count){
 
     pools[poolid].curr_size = count - pools[poolid].pool_size;
     pools[poolid].pool_size = count;
+#endif
 
     return FFSUCCESS;
 }
 
 pool_h ffstorage_pool_create(size_t elem_size, uint32_t initial_count, ffpool_init_fun_t init_fun){
-    if (next_free_pool >= MAX_POOLS) return FFENOMEM;
+    if (next_free_pool++ >= MAX_POOLS) {
+        assert(0);
+        return FFENOMEM;
+    }
+
     pool_h poolid = ffarman_get(&index_manager);
     pools[poolid].head = NULL;
     pools[poolid].elem_size = elem_size;
@@ -60,6 +71,7 @@ pool_h ffstorage_pool_create(size_t elem_size, uint32_t initial_count, ffpool_in
     //printf("creating pool: %u; %p\n", poolid, pools[poolid].head);
 
     if (alloc_pool_internal(poolid, elem_size, initial_count)!=FFSUCCESS) {
+        assert(0);
         return FFENOMEM;
     }
 
@@ -73,7 +85,7 @@ int ffstorage_pool_destroy(pool_h poolid){
 }
 
 int ffstorage_pool_get(pool_h poolid, void ** ptr){
-    
+#ifndef POOL_USE_MALLOC
     //printf("checking pool: %u; %p\n", poolid, pools[poolid].head);
     if (pools[poolid].head==NULL){
         /* allocate again */
@@ -86,19 +98,29 @@ int ffstorage_pool_get(pool_h poolid, void ** ptr){
     //printf("new head: %p; size: %lu\n", pools[poolid].head->next, pools[poolid].elem_size);
     pools[poolid].head = pools[poolid].head->next;
     pools[poolid].curr_size--;
-
+    FFLOG("ffstorage_pool_get: poolid: %u; allocated %p size: %u\n", poolid, *ptr, pools[poolid].elem_size);
+#else
+    posix_memalign(ptr, 128, pools[poolid].elem_size);
+    //*ptr = malloc(pools[poolid].elem_size);
+    FFLOG("ffstorage_pool_get: allocated %p size: %u\n", *ptr, pools[poolid].elem_size);
+#endif
     return FFSUCCESS;
 }
 
 int ffstorage_pool_put(void * ptr){
+#ifndef POOL_USE_MALLOC
     ffmem_block_t * tofree = (ffmem_block_t *) ((uint8_t *) ptr - sizeof(ffmem_block_t));    
     
     tofree->next = pools[tofree->poolid].head;
     pools[tofree->poolid].head = tofree;
     pools[tofree->poolid].curr_size++;
-    
-    /* TODO: release memory if the pool is almost empty */
 
+    FFLOG("ffstorage_pool_put: poolid: %u\n", tofree->poolid);
+
+    /* TODO: release memory if the pool is almost empty */
+#else
+    free(ptr);
+#endif
     return FFSUCCESS;
 }
 

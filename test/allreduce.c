@@ -28,19 +28,30 @@ int main(int argc, char * argv[]){
     int32_t * reduced = malloc(sizeof(int32_t)*count);
     
     int failed=0;
-    int16_t tag = 0;
+    
+    MPI_Aint  * maxTag;
+    int error, flag;
+
+    error = MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &maxTag, &flag);
+
+    if(error != MPI_SUCCESS || !flag ){
+     printf( " ERROR IN native mpitagub\n");
+    }
+
+    printf( "mpitagub = %lu\n", *maxTag);
+
+    int16_t tag=0;
     MPI_Barrier(MPI_COMM_WORLD); //not needed, just for having nice output
     for (int i=0; i<N; i++){
-            
+ 
+        printf("Starting iteration %i\n", i);           
         for (int j=0; j<count; j++){
             to_reduce[j] = i+j;
             reduced[j] = 0;
         }
-        
-    
+
         ffschedule_h allreduce;
         ffallreduce(to_reduce, reduced, count, tag++, FFSUM, FFINT32, 0, &allreduce);
-
 
         ffschedule_post(allreduce);
         ffschedule_wait(allreduce);
@@ -52,12 +63,11 @@ int main(int argc, char * argv[]){
             }
         }
 
+        ffschedule_delete(allreduce);
+
         /* this is ugly... TODO: have internal tags for collectives or allow to change the tag of an operation without changing it */
         /* let's rely on the MPI non-overtaking rule for now */
         //MPI_Barrier(MPI_COMM_WORLD);
-
-        ffschedule_delete(allreduce);
-
 
     }
 
