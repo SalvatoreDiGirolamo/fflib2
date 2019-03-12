@@ -33,7 +33,7 @@
 #define FFCALLBACK  4
 #define FFMAX_IDX   5 /* not actual op, just boundary for ops indexes */
 
-#define TAG_VERSION_MASK    0x0000FFFF
+#define TAG_VERSION_MASK    0x0000000F
 #define TAG_TYPE_MASK       0x00000001
 
 typedef int ffdatatype_t; /* for now the internal datatype type is an int as well */
