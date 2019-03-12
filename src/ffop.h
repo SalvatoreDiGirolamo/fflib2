@@ -4,6 +4,7 @@
 #define FFPOLLS_BEFORE_YIELD 5
 
 #define FFOP_ENQUEUE(op, oplist) { \
+    FFLOG("Enqueueing op %u (head: %u)\n", op->id, (*oplist==NULL ? -1 : (*oplist)->id)); \
     op->instance.next = *oplist; \
     *oplist = op; \
 }

@@ -35,7 +35,7 @@ int main(int argc, char * argv[]){
     ffsize(&size);
 
     ffschedule_h solo_allreduce_sched;
-    ffsolo_allreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, 4, &solo_allreduce_sched);
+    ffsolo_allreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, iters, &solo_allreduce_sched);
     ffschedule_start(solo_allreduce_sched);
 
     if (rank==0){

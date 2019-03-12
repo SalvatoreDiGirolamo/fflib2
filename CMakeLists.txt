@@ -86,7 +86,7 @@ install(TARGETS fflib
 install(FILES ${CMAKE_BINARY_DIR}/fflib.pc
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 
-configure_file(test/test_activation.sh test/ COPYONLY)
+configure_file(test/test_activation.sh test/test_activation.sh COPYONLY)
 
 #--------------------------------------------------
 # Tests

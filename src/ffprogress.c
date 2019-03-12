@@ -44,10 +44,13 @@ void * progress_thread(void * args){
             FFCALLV(progressers[i].progress(&completed), NULL);
         }
 
+        //FFLOG("Progress thread got new completed op? %u\n", (uint32_t) (completed!=NULL));
         /* Satisfy the dependencies */
         while (completed!=NULL){ 
+            //FFLOG("Progress thread completing %p (next: %p)\n", completed, completed->instance.next);
             ffop_complete(completed);
             completed = completed->instance.next;
+
         }
     }       
 

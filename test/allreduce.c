@@ -6,7 +6,7 @@
 
 #define FFCALL(X) { int ret; if (ret=(X)!=FFSUCCESS) { printf("Error: %i\n", ret); exit(-1); } }
 
-#define N 100
+#define N 2048
 
 int main(int argc, char * argv[]){
     
@@ -28,10 +28,7 @@ int main(int argc, char * argv[]){
     int32_t * reduced = malloc(sizeof(int32_t)*count);
     
     int failed=0;
-    
-    ffschedule_h allreduce;
-    ffallreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, &allreduce);
-
+    int16_t tag = 0;
     MPI_Barrier(MPI_COMM_WORLD); //not needed, just for having nice output
     for (int i=0; i<N; i++){
             
@@ -40,6 +37,11 @@ int main(int argc, char * argv[]){
             reduced[j] = 0;
         }
         
+    
+        ffschedule_h allreduce;
+        ffallreduce(to_reduce, reduced, count, tag++, FFSUM, FFINT32, 0, &allreduce);
+
+
         ffschedule_post(allreduce);
         ffschedule_wait(allreduce);
 
@@ -53,9 +55,12 @@ int main(int argc, char * argv[]){
         /* this is ugly... TODO: have internal tags for collectives or allow to change the tag of an operation without changing it */
         /* let's rely on the MPI non-overtaking rule for now */
         //MPI_Barrier(MPI_COMM_WORLD);
+
+        ffschedule_delete(allreduce);
+
+
     }
 
-    ffschedule_delete(allreduce);
 
     fffinalize();
     

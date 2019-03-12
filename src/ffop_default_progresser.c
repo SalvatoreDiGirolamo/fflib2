@@ -20,6 +20,7 @@ int ffop_default_progresser_progress(ffop_t ** ready_list){
     ffop_t * readyop = NULL;
     ffqman_pop(&ready_ops, (void **) &readyop);
     while (readyop!=NULL){
+        //FFLOG("Default progresser found op %lu completed\n", readyop->id);
         FFOP_ENQUEUE(readyop, ready_list);      
         ffqman_pop(&ready_ops, (void **) &readyop);
     }

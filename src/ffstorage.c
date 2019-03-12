@@ -1,6 +1,7 @@
 
 #include "ffstorage.h"
 #include "utils/ffarman.h"
+#include "assert.h"
 
 static ffpool_t pools[MAX_POOLS];
 static uint32_t next_free_pool;
@@ -41,7 +42,7 @@ int alloc_pool_internal(uint32_t poolid, size_t elem_size, uint32_t count){
     GET(pools[poolid], count-1)->poolid = poolid;
     GET(pools[poolid], count-1)->id = count - 1;
 
-    pools[poolid].curr_size += count - pools[poolid].pool_size;
+    pools[poolid].curr_size = count - pools[poolid].pool_size;
     pools[poolid].pool_size = count;
 
     return FFSUCCESS;

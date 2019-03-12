@@ -242,14 +242,21 @@ int ffop_complete(ffop_t * op){
         uint32_t dep_op_version = dep_op->version;
 
         if (op_version <= dep_op_version && !IS_OPT_SET(dep, FFDEP_IGNORE_VERSION)) {
-            FFLOG("ffop version mismatch -> dependency not satisfied (%lu.version (dep_op) = %u; %lu.version (op) = %u)\n", dep_op->id, dep_op_version, op->id, op_version);
+            FFLOG("ffop version mismatch -> dependency not satisfied (%lu.version (dep_op) = %u; %lu.version (op) = %u);\n", dep_op->id, dep_op_version, op->id, op_version);
             continue;
+        }
+
+        if (op_version > dep_op_version + 1){
+            //we are updating an operation that is old: it may have partially satisfied dependencies
+            FFLOG("OLD OP VERSION: resetting deps to %u (before was %u)\n", dep_op->in_dep_count, dep_op->instance.dep_left);
+            dep_op->instance.dep_left = dep_op->in_dep_count; 
         }
 
         if (IS_OPT_SET(dep, FFDEP_NO_AUTOPOST)){
             FFLOG("op %lu is set with FFOP_NO_AUTOPOST --> skipping it!\n", dep_op->id);
             continue;
         }
+
 
         int32_t deps = __sync_add_and_fetch(&(dep_op->instance.dep_left), -1);
         FFLOG("Decreasing %lu dependencies by one: now %i (is OR dep: %u; non-persistent: %u); %lu.version (dep_op) = %u; %lu.version (op) = %u\n", dep_op->id, dep_op->instance.dep_left, (unsigned int) IS_OPT_SET(dep_op, FFOP_DEP_OR), (unsigned int) IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT), dep_op->id, dep_op_version, op->id, op_version);
@@ -269,6 +276,8 @@ int ffop_complete(ffop_t * op){
         }
         
     } while (op->dep_next != first_dep && satisfy_all);
+
+    FFLOG("statify dependency op loop completed\n");
 
     return FFSUCCESS;
 } 
