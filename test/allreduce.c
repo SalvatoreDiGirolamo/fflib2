@@ -6,7 +6,7 @@
 
 #define FFCALL(X) { int ret; if (ret=(X)!=FFSUCCESS) { printf("Error: %i\n", ret); exit(-1); } }
 
-#define N 100
+#define N 2048
 
 int main(int argc, char * argv[]){
     
@@ -43,7 +43,8 @@ int main(int argc, char * argv[]){
     int16_t tag=0;
     MPI_Barrier(MPI_COMM_WORLD); //not needed, just for having nice output
     for (int i=0; i<N; i++){
-            
+ 
+        printf("Starting iteration %i\n", i);           
         for (int j=0; j<count; j++){
             to_reduce[j] = i+j;
             reduced[j] = 0;
