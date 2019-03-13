@@ -71,6 +71,7 @@ int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_act
     if (cnt>0) *user_activator_test = completions[0];
 
     ffschedule_add_op(sched, *user_activator);
+
     ffop_h sched_completion;
     ffnop(FFOP_DEP_OR, &sched_completion);
 
