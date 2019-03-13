@@ -8,7 +8,7 @@ int ffactivation_delete(ffschedule_h sched){
     free(buff);
 }
 
-int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_activator_test, ffschedule_h *_sched){
+int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_activator_test, ffop_h *activation_join, ffschedule_h *_sched){
     ffschedule_h sched;
     FFCALL(ffschedule_create(&sched));
 
@@ -74,6 +74,7 @@ int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_act
     ffop_h sched_completion;
     ffnop(FFOP_DEP_OR, &sched_completion);
 
+    *activation_join = sched_completion;
     ffop_hb(recvs[cnt-1], sched_completion, 0);
 
     for (int i=0; i<cnt; i++){     

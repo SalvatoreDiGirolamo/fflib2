@@ -64,6 +64,8 @@ int ffop_post(ffop_h _op){
     }
 
     op->version++;
+    op->instance.dep_left = op->in_dep_count; 
+
     return ffop_scheduler_schedule(op);
 }
 
@@ -236,7 +238,7 @@ int ffop_complete(ffop_t * op){
     FFLOG("completing op %lu\n", op->id);
     op->in_flight = 0;
     // restore dep_left, so the op can be reused
-    op->instance.dep_left = op->in_dep_count; 
+    //op->instance.dep_left = op->in_dep_count; 
     __sync_add_and_fetch(&(op->instance.completed), 1);
 
 #ifdef WAIT_COND
@@ -309,5 +311,6 @@ int ffop_complete(ffop_t * op){
 int ffop_cancel(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
     FFLOG("Cancelling op %lu (version: %u)\n", op->id, op->version);
+    op->instance.dep_left = op->in_dep_count; 
     return ff.impl.ops[op->type].cancel(op); 
 }

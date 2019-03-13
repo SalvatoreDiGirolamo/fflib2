@@ -18,7 +18,7 @@ int main(int argc, char * argv[]){
     int inc=1;
 
     ffschedule_h sched;
-    ffop_h activation_op, activated_op, activator, activator_test, sched_begin_op;      
+    ffop_h activation_op, activated_op, activator, activator_test, sched_begin_op, activation_join;      
 
     // we need to use the same seed in this test!
     srand(SEED);
@@ -28,7 +28,7 @@ int main(int argc, char * argv[]){
     ffsize(&comm_size);
 
     // create the activation tree
-    ffactivation(0, 0, &activator, &activator_test, &sched);
+    ffactivation(0, 0, &activator, &activator_test, &activation_join, &sched);
     
     // get the hook to activate the op
     ffschedule_get_end_op(sched, &activation_op);

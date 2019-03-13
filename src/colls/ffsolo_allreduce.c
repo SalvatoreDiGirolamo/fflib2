@@ -30,8 +30,8 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     ffschedule_set_print_fun(sched, ffsolo_allreduce_print);
 
     //create the activation schedule
-    ffop_h activation_schedule_test, activation_schedule_link, activation_schedule_op, activation_schedule_root;
-    ffactivation(FFSHADOW_TAG, 0, &activation_schedule_op, &activation_schedule_test, &(state->activation_schedule));
+    ffop_h activation_schedule_test, activation_schedule_link, activation_schedule_op, activation_schedule_root, activation_join;
+    ffactivation(FFSHADOW_TAG, 0, &activation_schedule_op, &activation_schedule_test, &activation_join, &(state->activation_schedule));
     ffschedule_get_begin_op(state->activation_schedule, &activation_schedule_root);
     ffschedule_get_end_op(state->activation_schedule, &activation_schedule_link);
     
@@ -59,7 +59,7 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     ffop_h allreduce_activate;
     ffnop(FFOP_DEP_OR, &allreduce_activate);
     ffop_hb(activation_schedule_link, allreduce_activate, FFDEP_IGNORE_VERSION);
-    ffop_hb(limiter_sync, allreduce_activate, FFDEP_IGNORE_VERSION);
+    ffop_hb(limiter_sync, activation_join, FFDEP_IGNORE_VERSION);
 
     //allreduce activation op activates the allreduce
     ffop_hb(allreduce_activate, allreduce_begin, 0);
