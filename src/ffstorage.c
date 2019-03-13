@@ -3,7 +3,7 @@
 #include "utils/ffarman.h"
 #include <assert.h>
 
-//#define POOL_USE_MALLOC
+#define POOL_USE_MALLOC
 
 static ffpool_t pools[MAX_POOLS];
 static uint32_t next_free_pool;
@@ -102,6 +102,9 @@ int ffstorage_pool_get(pool_h poolid, void ** ptr){
 #else
     posix_memalign(ptr, 128, pools[poolid].elem_size);
     //*ptr = malloc(pools[poolid].elem_size);
+    if (pools[poolid].init_fun!=NULL){
+        pools[poolid].init_fun(*ptr);
+    }
     FFLOG("ffstorage_pool_get: allocated %p size: %u\n", *ptr, pools[poolid].elem_size);
 #endif
     return FFSUCCESS;
