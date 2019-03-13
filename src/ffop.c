@@ -268,7 +268,7 @@ int ffop_complete(ffop_t * op){
 
 
         int32_t deps = __sync_add_and_fetch(&(dep_op->instance.dep_left), -1);
-        FFLOG("Decreasing %lu dependencies by one: now %i (is OR dep: %u; non-persistent: %u); %lu.version (dep_op) = %u; %lu.version (op) = %u\n", dep_op->id, dep_op->instance.dep_left, (unsigned int) IS_OPT_SET(dep_op, FFOP_DEP_OR), (unsigned int) IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT), dep_op->id, dep_op_version, op->id, op_version);
+        FFLOG("Decreasing %lu dependencies by one: now %i (is OR dep: %u; non-persistent: %u; ignore-version: %u); %lu.version (dep_op) = %u; %lu.version (op) = %u\n", dep_op->id, dep_op->instance.dep_left, (unsigned int) IS_OPT_SET(dep_op, FFOP_DEP_OR), (unsigned int) IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT), (unsigned int) IS_OPT_SET(dep, FFDEP_IGNORE_VERSION), dep_op->id, dep_op_version, op->id, op_version);
 
         int trigger;
         // triggering conditions:
