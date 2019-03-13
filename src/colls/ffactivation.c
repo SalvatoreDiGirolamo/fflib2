@@ -52,7 +52,6 @@ int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_act
                 ffop_hb(send, completions[i], 0);
             }            
             //ffop_hb(*user_activator, send, FFDEP_IGNORE_VERSION);
-            ffop_hb(*user_activator, send, 0);
             ffop_hb(send, completion, 0);
 
             //recv
@@ -62,6 +61,7 @@ int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_act
             completions[cnt] = completion;
             cnt++;
             prev_dep = recv;
+            ffop_hb_fallback(*user_activator, send, completions[0], 0);
 
             ffschedule_add_op(sched, send);
         }

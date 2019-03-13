@@ -103,6 +103,7 @@ int ffop_post(ffop_h op);
 int ffop_wait(ffop_h op);
 int ffop_test(ffop_h op, int * flag);
 int ffop_hb(ffop_h first, ffop_h second, int options);
+int ffop_hb_fallback(ffop_h _first, ffop_h _second, ffop_h _fall_back, int options);
 int ffop_free(ffop_h _op);
 int ffop_tostring(ffop_h op, char * str, int len);
 int ffop_cancel(ffop_h op);

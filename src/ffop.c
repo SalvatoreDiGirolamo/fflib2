@@ -159,10 +159,14 @@ int ffop_test(ffop_h _op, int * flag){
 #endif
 }
 
-
 int ffop_hb(ffop_h _first, ffop_h _second, int options){
+    return ffop_hb_fallback(_first, _second, FFNONE, options);
+}
+
+int ffop_hb_fallback(ffop_h _first, ffop_h _second, ffop_h _fall_back, int options){
     ffop_t * first = (ffop_t *) _first;
     ffop_t * second = (ffop_t *) _second;
+    ffop_t * fall_back = (_fall_back==FFNONE) ? NULL : (ffop_t *) _fall_back;
 #ifdef ARGS_CHECK
     if (first==NULL || second==NULL) return FFINVALID_ARG;
 #endif
@@ -175,6 +179,7 @@ int ffop_hb(ffop_h _first, ffop_h _second, int options){
     ffstorage_pool_get(dep_op_pool, (void **) &dep);
     dep->op = second;
     dep->options = options;
+    dep->fall_back = fall_back;
 
     if (first->dep_first==NULL){
         first->dep_first        = dep;
@@ -252,7 +257,17 @@ int ffop_complete(ffop_t * op){
 
         if (op_version <= dep_op_version && !IS_OPT_SET(dep, FFDEP_IGNORE_VERSION)) {
             FFLOG("ffop version mismatch -> dependency not satisfied (%lu.version (dep_op) = %u; %lu.version (op) = %u);\n", dep_op->id, dep_op_version, op->id, op_version);
-            continue;
+            if (dep->fall_back!=NULL) {
+                dep_op = dep->fall_back;
+                dep_op_version = dep_op->version;  
+                FFLOG("ffop version mismatch FOUND FALLBACK! (%lu.version (dep_op) = %u; %lu.version (op) = %u);\n", dep_op->id, dep_op_version, op->id, op_version);
+
+                if (op_version <= dep_op_version && !IS_OPT_SET(dep, FFDEP_IGNORE_VERSION)) {
+                    FFLOG("ffop version mismatch on FALLBACK DEP OP! -> dependency not satisfied (%lu.version (dep_op) = %u; %lu.version (op) = %u);\n", dep_op->id, dep_op_version, op->id, op_version);
+                }
+            } else {
+                continue;
+            }
         }
 
         if (op_version > dep_op_version + 1){

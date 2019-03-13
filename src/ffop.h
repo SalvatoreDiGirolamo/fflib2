@@ -92,6 +92,7 @@ struct ffop{
 
 typedef struct ffdep_op{
     struct ffop     *op;
+    struct ffop     *fall_back;
     struct ffdep_op *next;
     int              options;
 } ffdep_op_t;
