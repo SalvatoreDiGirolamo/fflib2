@@ -67,21 +67,32 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
 
     ffop_h is_async_or_external;
     ffnop(FFOP_DEP_OR, &is_async_or_external);
-    ffop_hb(activation_join, is_async_or_external, 0);
-    ffop_hb(limiter_async, is_async_or_external, 0);
+    ffop_hb(activation_join, is_async_or_external, FFDEP_IGNORE_VERSION);
+    ffop_hb(limiter_async, is_async_or_external, FFDEP_IGNORE_VERSION);
 
+    /*
     ffop_h shall_reactivate;
     ffnop(0, &shall_reactivate);
     ffop_hb(is_async_or_external, shall_reactivate, 0);
     ffop_hb(allreduce_end, shall_reactivate, 0);
 
-    //add the feedback link to re-execute the schedule once the current one completes
-    ffop_hb(shall_reactivate, activation_schedule_root, 0);
+    /add the feedback link to re-execute the schedule once the current one completes
+    ffop_hb(shall_reactivate, activation_schedule_root, FFDEP_IGNORE_VERSION);
+    */
+    /**/
+
+    ffop_hb(is_async_or_external, activation_schedule_root, FFDEP_IGNORE_VERSION);
+    ffop_hb(allreduce_end, activation_schedule_root, FFDEP_IGNORE_VERSION);
+
+
+    /**/
+
+  
 
     //add the created ops to the schedule so we can delete it then
     ffschedule_add_op(sched, allreduce_activate);
     ffschedule_add_op(sched, state->allreduce_activation_test);
-    ffschedule_add_op(sched, shall_reactivate);
+    //ffschedule_add_op(sched, shall_reactivate);
     ffschedule_add_op(sched, is_async_or_external);
 
     //FIXME: TODO
