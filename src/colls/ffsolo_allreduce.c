@@ -72,6 +72,13 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     ffop_hb(limiter_async, is_async_or_external, 0);
     //ffop_hb(allreduce_end, is_async_or_external, 0);
 
+    ffop_h shall_reactivate;
+    ffnop(0, &shall_reactivate);
+    ffop_hb(is_async_or_external, shall_reactivate, 0);
+    ffop_hb(allreduce_end, shall_reactivate, 0);
+    ffop_hb(shall_reactivate, activation_schedule_root, FFDEP_IGNORE_VERSION);
+
+
     /*
     ffop_h shall_reactivate;
     ffnop(0, &shall_reactivate);
@@ -83,8 +90,10 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     */
     /**/
 
-    ffop_hb(is_async_or_external, activation_schedule_root, FFDEP_IGNORE_VERSION);
-    ffop_hb(allreduce_end, activation_schedule_root, FFDEP_IGNORE_VERSION);
+    //ffop_hb(is_async_or_external, activation_schedule_root, FFDEP_IGNORE_VERSION);
+    //ffop_hb(allreduce_end, activation_schedule_root, FFDEP_IGNORE_VERSION);
+    
+   
 
 
     /**/
