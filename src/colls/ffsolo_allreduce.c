@@ -3,7 +3,9 @@
 typedef struct solo_allreduce_state{
     ffschedule_h activation_schedule;
     ffschedule_h allreduce_schedule;
+    ffschedule_h sync_allreduce_schedule;
     ffschedule_h solo_limiter;
+    ffop_h allreduce_ends;
     ffop_h allreduce_activation_test;  //op that needs to be tested to check if a local activation completed (two activations should not overlap)
 } solo_allreduce_state_t;
 
@@ -35,11 +37,17 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     ffschedule_get_begin_op(state->activation_schedule, &activation_schedule_root);
     ffschedule_get_end_op(state->activation_schedule, &activation_schedule_link);
     
-    //create the allreduce schedule
+    //create the async allreduce schedule
     ffop_h allreduce_begin, allreduce_end;  
     ffallreduce(sndbuff, rcvbuff, count, tag, operator, datatype, options, &(state->allreduce_schedule));
     ffschedule_get_begin_op(state->allreduce_schedule, &allreduce_begin);
     ffschedule_get_end_op(state->allreduce_schedule, &allreduce_end);
+    
+    //create the synch allreduce schedule
+    ffop_h sync_allreduce_begin, sync_allreduce_end;  
+    ffallreduce(sndbuff, rcvbuff, count, tag, operator, datatype, options, &(state->sync_allreduce_schedule));
+    ffschedule_get_begin_op(state->sync_allreduce_schedule, &sync_allreduce_begin);
+    ffschedule_get_end_op(state->sync_allreduce_schedule, &sync_allreduce_end);
     
     //create the solo limiter
     ffop_h limiter_async, limiter_sync;
@@ -60,51 +68,22 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     ffnop(FFOP_DEP_OR, &allreduce_activate);
     ffop_hb(activation_schedule_link, allreduce_activate, FFDEP_IGNORE_VERSION);
     //ffop_hb(limiter_sync, activation_join, FFDEP_IGNORE_VERSION);
-    ffop_hb(limiter_sync, allreduce_activate, FFDEP_IGNORE_VERSION);
+    ffop_hb(limiter_sync, sync_allreduce_begin, FFDEP_IGNORE_VERSION);
 
-    //allreduce activation op activates the allreduce
-    ffop_hb(allreduce_activate, allreduce_begin, 0);
-
-    ffop_h is_async_or_external;
-    ffnop(FFOP_DEP_OR, &is_async_or_external);
-    //needs to consider version otherwise both will lead to the completion
-    ffop_hb(activation_join, is_async_or_external, 0);
-    ffop_hb(limiter_async, is_async_or_external, 0);
-    //ffop_hb(allreduce_end, is_async_or_external, 0);
-
-    ffop_h shall_reactivate;
-    ffnop(0, &shall_reactivate);
-    ffop_hb(is_async_or_external, shall_reactivate, 0);
-    ffop_hb(allreduce_end, shall_reactivate, 0);
-    ffop_hb(shall_reactivate, activation_schedule_root, FFDEP_IGNORE_VERSION);
-
-
-    /*
-    ffop_h shall_reactivate;
-    ffnop(0, &shall_reactivate);
-    ffop_hb(is_async_or_external, shall_reactivate, 0);
-    ffop_hb(allreduce_end, shall_reactivate, 0);
-
-    /add the feedback link to re-execute the schedule once the current one completes
-    ffop_hb(shall_reactivate, activation_schedule_root, FFDEP_IGNORE_VERSION);
-    */
-    /**/
-
-    //ffop_hb(is_async_or_external, activation_schedule_root, FFDEP_IGNORE_VERSION);
-    //ffop_hb(allreduce_end, activation_schedule_root, FFDEP_IGNORE_VERSION);
-    
-   
-
-
-    /**/
-
+    ffop_hb(activation_join, allreduce_begin, 0);
+    ffop_hb(allreduce_end, activation_schedule_root, FFDEP_IGNORE_VERSION);
   
+    ffnop(FFOP_DEP_OR, &(state->allreduce_ends));
+    ffop_hb(allreduce_end, state->allreduce_ends, FFDEP_IGNORE_VERSION);
+    ffop_hb(sync_allreduce_end, state->allreduce_ends, FFDEP_IGNORE_VERSION);
+
+    ffschedule_add_op(sched, state->allreduce_ends);
 
     //add the created ops to the schedule so we can delete it then
     ffschedule_add_op(sched, allreduce_activate);
     ffschedule_add_op(sched, state->allreduce_activation_test);
-    //ffschedule_add_op(sched, shall_reactivate);
-    ffschedule_add_op(sched, is_async_or_external);
+
+
 
     //FIXME: TODO
     // 1) add multiple buffers
@@ -129,7 +108,7 @@ int ffsolo_allreduce_wait(ffschedule_h sched){
     solo_allreduce_state_t * state;
     ffschedule_get_state(sched, (void **) &state);
     FFCALLV(ffop_wait(state->allreduce_activation_test), FFERROR);
-    return ffschedule_wait(state->allreduce_schedule);
+    return ffop_wait(state->allreduce_ends);
 }
 
 int ffsolo_allreduce_test(ffschedule_h sched, int * flag){
@@ -137,7 +116,7 @@ int ffsolo_allreduce_test(ffschedule_h sched, int * flag){
     ffschedule_get_state(sched, (void **) &state);
     ffop_test(state->allreduce_activation_test, flag);
     if (*flag){
-        ffschedule_test(state->allreduce_schedule, flag);
+        ffop_test(state->allreduce_ends, flag);
     }
     return FFSUCCESS;
 }   
