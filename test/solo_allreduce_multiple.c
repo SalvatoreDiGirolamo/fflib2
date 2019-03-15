@@ -34,7 +34,7 @@ int main(int argc, char * argv[]){
     srand(time(NULL)/(rank+1));
    
     ffschedule_h solo_allreduce_sched;
-    ffsolo_allreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, 4, &solo_allreduce_sched);
+    ffsolo_allreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, 2, &solo_allreduce_sched);
 
     if (rank==0){
         FILE * fp = fopen("test_vis", "w+");

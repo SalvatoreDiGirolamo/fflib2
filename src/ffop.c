@@ -84,9 +84,10 @@ int ffop_execute(ffop_t * op){
         return FFINVALID_ARG;
     }
 #endif
-
+    uint8_t already_progressing = op->in_flight;
     if (op->in_flight){
         ffop_cancel((ffop_h) op);
+        already_progressing = 1;
     }
     op->in_flight = 1;
     op->instance.completed = 0;
@@ -96,7 +97,7 @@ int ffop_execute(ffop_t * op){
     res = ff.impl.ops[op->type].exec(op, NULL);
 
     /* check if the operation has been immediately completed */
-    if (res==FFCOMPLETED){ ffop_default_progresser_track(op); }
+    if (res==FFCOMPLETED && !already_progressing){ ffop_default_progresser_track(op); }
     
     return res;
 }

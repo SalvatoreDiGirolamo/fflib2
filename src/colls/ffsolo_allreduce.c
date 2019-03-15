@@ -67,8 +67,10 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
 
     ffop_h is_async_or_external;
     ffnop(FFOP_DEP_OR, &is_async_or_external);
-    ffop_hb(activation_join, is_async_or_external, FFDEP_IGNORE_VERSION);
-    ffop_hb(limiter_async, is_async_or_external, FFDEP_IGNORE_VERSION);
+    //needs to consider version otherwise both will lead to the completion
+    ffop_hb(activation_join, is_async_or_external, 0);
+    ffop_hb(limiter_async, is_async_or_external, 0);
+    //ffop_hb(allreduce_end, is_async_or_external, 0);
 
     /*
     ffop_h shall_reactivate;
