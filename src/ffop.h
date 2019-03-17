@@ -78,6 +78,7 @@ struct ffop{
 
         /* version of the op that has been posted*/
         //volatile uint32_t posted_version;
+        uint32_t in_flight_version;
 
         /* completion flag */
         volatile uint8_t completed;

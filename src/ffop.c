@@ -58,6 +58,8 @@ int ffop_tostring(ffop_h _op, char * str, int len){
 int ffop_post(ffop_h _op){
     ffop_t * op = (ffop_t *) _op;
 
+    FFLOG("Posting op %lu\n", op->id);
+
     if (op->version>0 && IS_OPT_SET(op, FFOP_NON_PERSISTENT)){
         FFLOG("Re-posting a non-persistent operation is not allowed!\n");
         return FFINVALID_ARG;
@@ -91,8 +93,9 @@ int ffop_execute(ffop_t * op){
     }
     op->in_flight = 1;
     op->instance.completed = 0;
+    op->instance.in_flight_version = op_version;
 
-    FFLOG("Posting op %lu\n", op->id);
+    FFLOG("Executing op %lu\n", op->id);
     //__sync_fetch_and_add(&(op->instance.posted_version), 1);
     res = ff.impl.ops[op->type].exec(op, NULL);
 
@@ -222,6 +225,7 @@ int ffop_create(ffop_t ** ptr){
 
     op->instance.next               = NULL;
     op->instance.dep_left           = 0;
+    op->instance.in_flight_version  = 0;
     //op->instance.posted_version     = 0;
     //op->instance.completed_version  = 0;
     op->instance.completed          = 0;
@@ -251,11 +255,12 @@ int ffop_complete(ffop_t * op){
     
     uint8_t satisfy_all = !IS_OPT_SET(op, FFOP_DEP_FIRST);
 
+    
+    uint32_t op_version = op->instance.in_flight_version;
     do{
         ffdep_op_t * dep = op->dep_next;
         ffop_t * dep_op = dep->op;
         op->dep_next = op->dep_next->next;
-        uint32_t op_version = op->version;
         uint32_t dep_op_version = dep_op->version;
 
         if (op_version <= dep_op_version && !IS_OPT_SET(dep, FFDEP_IGNORE_VERSION)) {
@@ -275,7 +280,7 @@ int ffop_complete(ffop_t * op){
 
         if (op_version > dep_op_version + 1){
             if (IS_OPT_SET(dep, FFDEP_SKIP_OLD_VERSIONS)) {
-                FFLOG("OLD OP VERSION: skipping (cur deps left: %u/%u)\n", dep_op->instance.dep_left, dep_op->in_dep_count);
+                FFLOG("OLD OP VERSION: skipping (%lu.version (dep_op) = %u; %lu.version (op) = %u); (cur deps left: %u/%u)\n", dep_op->id, dep_op_version, op->id, op_version, dep_op->instance.dep_left, dep_op->in_dep_count);
                 continue;
             }
             //we are updating an operation that is old: it may have partially satisfied dependencies
