@@ -49,10 +49,10 @@ int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_act
             for (int i=0; i<cnt; i++){
                 //ffop_hb(recvs[i], send, FFDEP_IGNORE_VERSION);
                 ffop_hb(recvs[i], send, 0);
-                ffop_hb(send, completions[i], 0);
+                ffop_hb(send, completions[i], FFDEP_SKIP_OLD_VERSIONS);
             }            
             //ffop_hb(*user_activator, send, FFDEP_IGNORE_VERSION);
-            ffop_hb(send, completion, 0);
+            ffop_hb(send, completion, FFDEP_SKIP_OLD_VERSIONS);
 
             //recv
             ffrecv(buff, 1, FFINT32, dst, tag, options, &recv);

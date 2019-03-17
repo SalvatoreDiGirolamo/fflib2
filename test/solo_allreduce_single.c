@@ -38,6 +38,7 @@ int main(int argc, char * argv[]){
     ffsolo_allreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, iters, &solo_allreduce_sched);
     ffschedule_start(solo_allreduce_sched);
 
+    MPI_Barrier(MPI_COMM_WORLD);
     if (rank==0){
         for(int i=0; i<iters; i++){
             FFLOG(" #### Starting iteration %i ####\n", i);

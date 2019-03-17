@@ -52,6 +52,7 @@
 #define FFDEP_NO_AUTOPOST       (1 << 9)
 #define FFDEP_IGNORE_VERSION    (1 << 10)
 #define FFSHADOW_TAG            (1 << 11)
+#define FFDEP_SKIP_OLD_VERSIONS (1 << 12)
 
 /* Our NULL */
 #define FFNONE              -1

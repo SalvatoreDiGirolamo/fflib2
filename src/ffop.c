@@ -274,6 +274,10 @@ int ffop_complete(ffop_t * op){
         }
 
         if (op_version > dep_op_version + 1){
+            if (IS_OPT_SET(dep, FFDEP_SKIP_OLD_VERSIONS)) {
+                FFLOG("OLD OP VERSION: skipping (cur deps left: %u/%u)\n", dep_op->instance.dep_left, dep_op->in_dep_count);
+                continue;
+            }
             //we are updating an operation that is old: it may have partially satisfied dependencies
             FFLOG("OLD OP VERSION: resetting deps to %u (before was %u)\n", dep_op->in_dep_count, dep_op->instance.dep_left);
             dep_op->instance.dep_left = dep_op->in_dep_count; 
