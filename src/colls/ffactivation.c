@@ -45,7 +45,7 @@ int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_act
             if (prev_dep!=FFNONE) ffop_hb(prev_dep, completion, 0);
 
             //send
-            ffsend(buff, 1, FFINT32, dst, tag, FFOP_DEP_OR | options, &send);
+            ffsend(buff, 1, FFINT32, dst, tag, FFOP_DEP_OR | FFOP_COMPLETE_BEFORE_CANCELLING | options, &send);
             for (int i=0; i<cnt; i++){
                 //ffop_hb(recvs[i], send, FFDEP_IGNORE_VERSION);
                 ffop_hb(recvs[i], send, 0);

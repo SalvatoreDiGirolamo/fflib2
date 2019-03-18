@@ -88,6 +88,10 @@ int ffop_execute(ffop_t * op){
 #endif
     uint8_t already_progressing = op->in_flight;
     if (op->in_flight){
+        if (IS_OPT_SET(op, FFOP_COMPLETE_BEFORE_CANCELLING)) {
+            FFLOG("Completing op %u before cancelling it!\n", op->id);
+            ffop_complete(op);
+        }
         ffop_cancel((ffop_h) op);
         already_progressing = 1;
     }
