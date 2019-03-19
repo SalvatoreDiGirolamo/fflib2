@@ -293,8 +293,8 @@ int ffop_complete(ffop_t * op){
             } else {
                 continue;
             }
-        }
-
+        } 
+        
         if (op_version > dep_op_version + 1){
             if (IS_OPT_SET(dep, FFDEP_SKIP_OLD_VERSIONS)) {
                 FFLOG("OLD OP VERSION: skipping (%lu.version (dep_op) = %u; %lu.version (op) = %u); (cur deps left: %u/%u)\n", dep_op->id, dep_op_version, op->id, op_version, dep_op->instance.dep_left, dep_op->in_dep_count);
