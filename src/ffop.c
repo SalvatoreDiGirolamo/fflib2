@@ -5,6 +5,7 @@
 #include "ffop_default_progresser.h"
 #include "ffop_scheduler.h"
 #include <sched.h>
+#include <assert.h>
 
 #define INITIAL_FFOP_POOL_COUNT 8192
 #define INITIAL_FFDEP_OP_POOL_COUNT 8192
@@ -76,6 +77,8 @@ int ffop_execute(ffop_t * op){
 
     uint32_t op_version = op->version;
 
+    assert(op->last_executed_version < op_version);
+
 #ifdef FFDEBUG
     if (op->instance.dep_left>0) FFLOG("Posting an op with dependencies left!\n");
 #endif
@@ -89,15 +92,23 @@ int ffop_execute(ffop_t * op){
     uint8_t already_progressing = op->in_flight;
     if (op->in_flight){
         if (IS_OPT_SET(op, FFOP_COMPLETE_BEFORE_CANCELLING)) {
-            FFLOG("Completing op %u before cancelling it!\n", op->id);
-            ffop_complete(op);
+            // post(op), post(op), exec(op); here we handle the case
+            // in which the same op has been posted multiple time before 
+            // executing it.
+            FFLOG("Completing op %u before cancelling it (last_executed_version: %u; version: %u)!\n", op->id, op->last_executed_version, op_version);
+            for (int i=op->last_completed_version; i < op_version - 1; i++) { ffop_complete(op); }
+        } else {
+            //fast forward
+            op->last_completed_version = op_version - 1;
         }
-        ffop_cancel((ffop_h) op);
+
+        ffop_cancel((ffop_h) op);         
         already_progressing = 1;
     }
+
+    op->last_executed_version++;
     op->in_flight = 1;
     op->instance.completed = 0;
-    op->instance.in_flight_version = op_version;
 
     FFLOG("Executing op %lu\n", op->id);
     //__sync_fetch_and_add(&(op->instance.posted_version), 1);
@@ -229,7 +240,8 @@ int ffop_create(ffop_t ** ptr){
 
     op->instance.next               = NULL;
     op->instance.dep_left           = 0;
-    op->instance.in_flight_version  = 0;
+    op->last_executed_version       = 0;
+    op->last_completed_version      = 0;
     //op->instance.posted_version     = 0;
     //op->instance.completed_version  = 0;
     op->instance.completed          = 0;
@@ -244,7 +256,10 @@ int ffop_create(ffop_t ** ptr){
 
 int ffop_complete(ffop_t * op){
 
-    FFLOG("completing op %lu\n", op->id);
+    assert(op->version > op->last_completed_version);
+    uint32_t op_version = ++op->last_completed_version;
+
+    FFLOG("completing op %lu (version: %u)\n", op->id, op_version);
     op->in_flight = 0;
     // restore dep_left, so the op can be reused
     //op->instance.dep_left = op->in_dep_count; 
@@ -259,8 +274,6 @@ int ffop_complete(ffop_t * op){
     
     uint8_t satisfy_all = !IS_OPT_SET(op, FFOP_DEP_FIRST);
 
-    
-    uint32_t op_version = op->instance.in_flight_version;
     do{
         ffdep_op_t * dep = op->dep_next;
         ffop_t * dep_op = dep->op;

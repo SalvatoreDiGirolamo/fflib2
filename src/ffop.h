@@ -63,6 +63,9 @@ struct ffop{
     /* last version it has been waited for */
     uint32_t wait_version;
     
+    uint32_t last_executed_version;
+    uint32_t last_completed_version;
+
     /* this is the consumable part that gets reset every time the operation
      * has to be re-executed. */
     struct instance{
@@ -78,7 +81,7 @@ struct ffop{
 
         /* version of the op that has been posted*/
         //volatile uint32_t posted_version;
-        uint32_t in_flight_version;
+        //uint32_t in_flight_version;
 
         /* completion flag */
         volatile uint8_t completed;
