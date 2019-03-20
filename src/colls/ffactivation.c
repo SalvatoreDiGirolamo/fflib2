@@ -45,11 +45,15 @@ int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_act
             if (prev_dep!=FFNONE) ffop_hb(prev_dep, completion, 0);
 
             //send
+            ffdep_op_h send_to_user_activation_test = FFNONE;
             ffsend(buff, 1, FFINT32, dst, tag, FFOP_DEP_OR | FFOP_COMPLETE_BEFORE_CANCELLING | options, &send);
             for (int i=0; i<cnt; i++){
                 //ffop_hb(recvs[i], send, FFDEP_IGNORE_VERSION);
+                ffdep_op_h send_to_completion;
                 ffop_hb(recvs[i], send, 0);
-                ffop_hb(send, completions[i], FFDEP_SKIP_OLD_VERSIONS);
+                
+                ffop_hb_fallback(send, completions[i], FFNONE, FFDEP_SKIP_OLD_VERSIONS, &send_to_completion);
+                if (i==0) send_to_user_activation_test = send_to_completion;
             }            
             //ffop_hb(*user_activator, send, FFDEP_IGNORE_VERSION);
             ffop_hb(send, completion, FFDEP_SKIP_OLD_VERSIONS);
@@ -61,7 +65,9 @@ int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_act
             completions[cnt] = completion;
             cnt++;
             prev_dep = recv;
-            ffop_hb_fallback(*user_activator, send, completions[0], 0);
+            ffdep_op_h user_activation_to_send;
+            ffop_hb_fallback(*user_activator, send, completions[0], 0, &user_activation_to_send);
+            if (send_to_user_activation_test!=FFNONE) ffdep_set_parent(send_to_user_activation_test, user_activation_to_send);
 
             ffschedule_add_op(sched, send);
         }

@@ -181,10 +181,21 @@ int ffop_test(ffop_h _op, int * flag){
 }
 
 int ffop_hb(ffop_h _first, ffop_h _second, int options){
-    return ffop_hb_fallback(_first, _second, FFNONE, options);
+    ffdep_op_h dep;
+    return ffop_hb_fallback(_first, _second, FFNONE, options, &dep);
 }
 
-int ffop_hb_fallback(ffop_h _first, ffop_h _second, ffop_h _fall_back, int options){
+int ffdep_set_parent(ffdep_op_h _constrained_dep, ffdep_op_h _constraining_dep){
+
+    ffdep_op_t *constrained_dep = _constrained_dep;
+    ffdep_op_t *constraining_dep = _constraining_dep;
+    assert(constraining_dep->children==NULL);
+    constraining_dep->children = constrained_dep;
+    constrained_dep->options |= FFDEP_CONSTRAINED;
+
+}
+
+int ffop_hb_fallback(ffop_h _first, ffop_h _second, ffop_h _fall_back, int options, ffdep_op_h *_dep){
     ffop_t * first = (ffop_t *) _first;
     ffop_t * second = (ffop_t *) _second;
     ffop_t * fall_back = (_fall_back==FFNONE) ? NULL : (ffop_t *) _fall_back;
@@ -198,10 +209,12 @@ int ffop_hb_fallback(ffop_h _first, ffop_h _second, ffop_h _fall_back, int optio
     
     ffdep_op_t *dep;        
     ffstorage_pool_get(dep_op_pool, (void **) &dep);
+    *((ffdep_op_t **) _dep) = dep;
     dep->op = second;
     dep->options = options;
     dep->fall_back = fall_back;
-    dep->fall_back_count = 0;
+    dep->count = 0;
+    dep->children = NULL;
 
     if (first->dep_first==NULL){
         first->dep_first        = dep;
@@ -282,8 +295,8 @@ int ffop_complete(ffop_t * op){
         uint32_t dep_op_version = dep_op->version;
 
         if (op_version <= dep_op_version && !IS_OPT_SET(dep, FFDEP_IGNORE_VERSION)) {
-            FFLOG("ffop version mismatch -> dependency not satisfied (%lu.version (dep_op) = %u; %lu.version (op) = %u); dep->fall_back_count: %u\n", dep_op->id, dep_op_version, op->id, op_version, dep->fall_back_count);
-            if (dep->fall_back!=NULL && dep->fall_back_count>0) {
+            FFLOG("ffop version mismatch -> dependency not satisfied (%lu.version (dep_op) = %u; %lu.version (op) = %u); \n", dep_op->id, dep_op_version, op->id, op_version);
+            if (dep->fall_back!=NULL) {
                 dep_op = dep->fall_back;
                 dep_op_version = dep_op->version;  
                 FFLOG("ffop version mismatch FOUND FALLBACK! (%lu.version (dep_op) = %u; %lu.version (op) = %u);\n", dep_op->id, dep_op_version, op->id, op_version);
@@ -292,12 +305,10 @@ int ffop_complete(ffop_t * op){
                     FFLOG("ffop version mismatch on FALLBACK DEP OP! -> dependency not satisfied (%lu.version (dep_op) = %u; %lu.version (op) = %u);\n", dep_op->id, dep_op_version, op->id, op_version);
                     continue;
                 }
-                dep->fall_back_count++;
             } else {
-                dep->fall_back_count++;
                 continue;
             }
-        } else dep->fall_back_count = 0; 
+        }
 
         if (op_version > dep_op_version + 1){
             if (IS_OPT_SET(dep, FFDEP_SKIP_OLD_VERSIONS)) {
@@ -314,9 +325,17 @@ int ffop_complete(ffop_t * op){
             continue;
         }
 
+        if (IS_OPT_SET(dep, FFDEP_CONSTRAINED)){
+            if (dep->count==0) continue;
+            else dep->count--;
+        }
 
         int32_t deps = __sync_add_and_fetch(&(dep_op->instance.dep_left), -1);
         FFLOG("Decreasing %lu dependencies by one: now %i (is OR dep: %u; non-persistent: %u; ignore-version: %u); %lu.version (dep_op) = %u; %lu.version (op) = %u\n", dep_op->id, dep_op->instance.dep_left, (unsigned int) IS_OPT_SET(dep_op, FFOP_DEP_OR), (unsigned int) IS_OPT_SET(dep_op, FFOP_NON_PERSISTENT), (unsigned int) IS_OPT_SET(dep, FFDEP_IGNORE_VERSION), dep_op->id, dep_op_version, op->id, op_version);
+
+        if (dep->children!=NULL){
+            dep->children->count++;
+        }
 
         int trigger;
         // triggering conditions:

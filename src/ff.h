@@ -54,6 +54,7 @@
 #define FFSHADOW_TAG            (1 << 11)
 #define FFDEP_SKIP_OLD_VERSIONS (1 << 12)
 #define FFOP_COMPLETE_BEFORE_CANCELLING (1 << 13)
+#define FFDEP_CONSTRAINED       (1 << 14)
 
 /* Our NULL */
 #define FFNONE              -1
@@ -85,6 +86,7 @@ typedef int ffoperator_h;
 typedef uint64_t ffop_h;
 typedef uint64_t ffschedule_h;
 typedef uint64_t ffbuffer_h;
+typedef uint64_t ffdep_op_h;
 
 typedef int (*ffschedule_start_fun_t)(ffschedule_h sched);
 typedef int (*ffschedule_post_fun_t)(ffschedule_h sched);
@@ -105,7 +107,8 @@ int ffop_post(ffop_h op);
 int ffop_wait(ffop_h op);
 int ffop_test(ffop_h op, int * flag);
 int ffop_hb(ffop_h first, ffop_h second, int options);
-int ffop_hb_fallback(ffop_h _first, ffop_h _second, ffop_h _fall_back, int options);
+int ffop_hb_fallback(ffop_h _first, ffop_h _second, ffop_h _fall_back, int options, ffdep_op_h *dep);
+int ffdep_set_parent(ffdep_op_h _constrained_dep, ffdep_op_h _constraining_dep);
 int ffop_free(ffop_h _op);
 int ffop_tostring(ffop_h op, char * str, int len);
 int ffop_cancel(ffop_h op);

@@ -97,7 +97,8 @@ struct ffop{
 typedef struct ffdep_op{
     struct ffop     *op;
     struct ffop     *fall_back;
-    uint32_t         fall_back_count;
+    struct ffdep_op *children;
+    uint32_t        count;
     struct ffdep_op *next;
     int              options;
 } ffdep_op_t;

@@ -50,7 +50,7 @@ int main(int argc, char * argv[]){
         for (int i=0; i<count; i++){
             to_reduce[i]++;
         }
-
+    
         if (rank != rand() % size){
             usleep(1000*(rand()/RAND_MAX));
         }
