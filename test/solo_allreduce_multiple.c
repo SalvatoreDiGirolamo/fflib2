@@ -17,19 +17,26 @@ void print_array(int32_t * array, int len){
 int main(int argc, char * argv[]){
     
     int rank, size, count, iters;
-    if (argc!=3){
-        printf("Usage: %s <count> <iters>\n", argv[0]);
+    float slowp;
+    if (argc!=4){
+        printf("Usage: %s <count> <iters> <slow processes>\n", argv[0]);
         exit(1);
     } 
 
     count = atoi(argv[1]);
     iters = atoi(argv[2]);
+    slowp = atof(argv[3]);
     int32_t * to_reduce = (int32_t *) calloc(count, sizeof(int32_t));
     int32_t * reduced = (int32_t *) calloc(count, sizeof(int32_t));
+    
 
     ffinit(&argc, &argv);
     ffrank(&rank);
     ffsize(&size);
+
+    int to_slow_down = size * slowp;
+
+    printf("Slowing down at most %i processes at each iteration\n", to_slow_down);
 
     srand(time(NULL)/(rank+1));
    
@@ -51,8 +58,10 @@ int main(int argc, char * argv[]){
             to_reduce[i]++;
         }
     
-        if (rank != rand() % size){
-            usleep(1000*(rand()/RAND_MAX));
+        for (int j=0; j<to_slow_down; j++){
+            if (rank == rand() % size){
+                usleep(1000*(rand()/RAND_MAX));
+            }
         }
 
         ffschedule_post(solo_allreduce_sched);
