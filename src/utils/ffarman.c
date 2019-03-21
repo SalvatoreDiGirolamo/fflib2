@@ -50,6 +50,7 @@ uint32_t ffarman_get(ffarman_t * array){
  
     FFLOCK_UNLOCK(&(array->lock));
     /* return the index */
+    assert(res!=-1);
     return res;
 }
 

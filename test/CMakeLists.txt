@@ -26,6 +26,7 @@ set(TEST_C_SRCS
   limiter
   solo_allreduce_single
   solo_allreduce_multiple
+  ssgd
 )
 
 set(TEST_CPP_SRCS

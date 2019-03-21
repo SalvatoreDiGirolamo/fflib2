@@ -10,12 +10,13 @@ typedef struct ffqman_entry {
     void * ptr;
     struct ffqman_entry * next;
     struct ffqman_entry * prev;
-    FFLOCK_TYPE lock;
 } ffqman_entry_t;
 
 typedef struct ffqman {
     ffqman_entry_t *head, *tail;
     ffqman_entry_t *head_sentinel, *tail_sentinel;
+    FFLOCK_TYPE lock;
+
 } ffqman_t;
 
 

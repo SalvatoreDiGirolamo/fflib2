@@ -9,7 +9,7 @@
 typedef struct ffop ffop_t;
 
 /* Max outstanding MPI operations */
-#define FFMPI_MAX_REQ 256
+#define FFMPI_MAX_REQ 4096
 
 int ffop_mpi_init(ffop_t * op);
 
