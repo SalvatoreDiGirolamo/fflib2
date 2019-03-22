@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     float slowp;
     if (argc != 4)
     {
-        printf("Usage: %s <count> <iters> <slow processes>\n", argv[0]);
+        printf("Usage: %s <count> <iters> <percentage slow processes [0..1]>\n", argv[0]);
         exit(1);
     }
     int16_t tag = 0;
