@@ -59,10 +59,15 @@ int main(int argc, char *argv[])
     srand(time(NULL) / (rank + 1));
 
     ffschedule_h solo_allreduce_sched[N];
+    ffop_h solo_probe[N];
+/*
     for (int i = 0; i < N; i++)
     {
-        ffsolo_allreduce(to_reduce[i], reduced[i], count, tag++, FFSUM, FFINT32, 0, 20, &(solo_allreduce_sched[i]));
+        ffsolo_allreduce(to_reduce[i], reduced[i], count, tag++, FFSUM, FFINT32, 0, 20, &(solo_allreduce_sched[i]), &solo_probe[i]);
     }
+*/
+
+
     //ffsolo_allreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, 20, &solo_allreduce_sched);
 
     /*if (rank == 0)
@@ -85,6 +90,7 @@ int main(int argc, char *argv[])
         for (int j = 0; j < N; j++)
         {
 
+            
             FFLOG("Iteration %i; allreduce: %i\n", i, j);
 
             for (int k = 0; k < count; k++)
@@ -100,8 +106,20 @@ int main(int argc, char *argv[])
                 }
             }
 
+            //memcpy to input buffer
+
             ffschedule_post(solo_allreduce_sched[j]);
             ffschedule_wait(solo_allreduce_sched[j]);
+/*
+            int i_activated_it;
+            ffop_test(solo_probe[j], &i_activated_it);
+
+            if (!i_activated_it){
+                //sum your contribution up
+            }
+            */
+            //memcpy to output buffer
+
             //print_array(reduced[j], count);
         }
     }

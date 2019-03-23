@@ -22,7 +22,12 @@ int ffop_mpi_send_execute(ffop_t * op, ffbuffer_set_t * mem){
     GETBUFFER(send->buffer, mem, buffer)
 
     //uint32_t tag =  (send->tag << 16) | ((op->version & TAG_VERSION_MASK) << 1) | (send->tag_type & TAG_TYPE_MASK);
-    uint32_t tag =  (send->tag << 5)  | ((op->version & TAG_VERSION_MASK) << 1) | (send->tag_type & TAG_TYPE_MASK);
+
+    //Cray MPI has 21bits tags
+    // user tag : 8bits;
+    // version  : 12bits;
+    // shadow   : 1bit.
+    uint32_t tag =  (send->tag << 13)  | ((op->version & TAG_VERSION_MASK) << 1) | (send->tag_type & TAG_TYPE_MASK);
 
 #ifdef DEBUG
     if (op->version != (op->version & TAG_VERSION_MASK)){

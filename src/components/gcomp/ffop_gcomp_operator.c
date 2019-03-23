@@ -61,6 +61,11 @@ int ffop_gcomp_operator_sum(void * a, void * b, void* c, uint32_t size, ffdataty
 int ffop_gcomp_operator_copy(void * a, void * b, void* c, uint32_t size, ffdatatype_h type){
     size_t unitsize;
     ffdatatype_size(type, &unitsize);
+
+    int rank;
+    ffrank(&rank);
+    printf("[%i] [DELETE ME] COPYING %u x %lu from %p to %p\n", rank, size, unitsize, a, c);
+    
     FFLOG("COPYING %u x %lu from %p to %p\n", size, unitsize, a, c);
     memcpy(c, a, size*unitsize);
     return FFSUCCESS;

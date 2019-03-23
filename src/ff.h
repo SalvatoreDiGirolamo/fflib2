@@ -119,11 +119,11 @@ int ffbuffer_resize(ffbuffer_h handle, void * addr, uint32_t new_count, ffdataty
 int ffbuffer_get_size(ffbuffer_h handle, uint32_t * count, ffdatatype_h * datatype);
 int ffbuffer_get_data(ffbuffer_h handle, void ** mem);
 
-int ffsend(void * addr, int count, ffdatatype_h datatype, int dest, int16_t tag, int options, ffop_h * op);
-int ffsend_b(ffbuffer_h buffer, int dest, int16_t tag, int options, ffop_h *_op);
+int ffsend(void * addr, int count, ffdatatype_h datatype, int dest, int8_t tag, int options, ffop_h * op);
+int ffsend_b(ffbuffer_h buffer, int dest, int8_t tag, int options, ffop_h *_op);
 
-int ffrecv(void * addr, int count, ffdatatype_h datatype, int source, int16_t tag, int options, ffop_h * op);
-int ffrecv_b(ffbuffer_h, int source, int16_t tag, int options, ffop_h * _op);
+int ffrecv(void * addr, int count, ffdatatype_h datatype, int source, int8_t tag, int options, ffop_h * op);
+int ffrecv_b(ffbuffer_h, int source, int8_t tag, int options, ffop_h * _op);
 
 int ffnop(int options, ffop_h * handle);
 int ffcallback(ffcb_fun_t cb, void * arg, int options, ffop_h * _op);

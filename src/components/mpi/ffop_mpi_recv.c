@@ -18,8 +18,11 @@ int ffop_mpi_recv_execute(ffop_t * op, ffbuffer_set_t * mem){
     void * buffer;
     GETBUFFER(recv->buffer, mem, buffer);
 
-    //uint32_t tag =  (recv->tag << 16) | ((op->version & TAG_VERSION_MASK) << 1) | (recv->tag_type & TAG_TYPE_MASK);
-    uint32_t tag =  (recv->tag << 5)  | ((op->version & TAG_VERSION_MASK) << 1) | (recv->tag_type & TAG_TYPE_MASK);
+    //Cray MPI has 21bits tags
+    // user tag : 8bits;
+    // version  : 12bits;
+    // shadow   : 1bit.
+    uint32_t tag =  (recv->tag << 13)  | ((op->version & TAG_VERSION_MASK) << 1) | (recv->tag_type & TAG_TYPE_MASK);
 
 #ifdef DEBUG
     if (op->version != (op->version & TAG_VERSION_MASK)){

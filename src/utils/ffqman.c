@@ -37,7 +37,7 @@ int ffqman_push(ffqman_t * queue, void * ptr){
 
     FFLOCK_LOCK(&(queue->lock));
 
-    FFLOG("PUSH %p head: %p; tail: %p\n", queue, queue->head, queue->tail);
+    //FFLOG("PUSH %p head: %p; tail: %p\n", queue, queue->head, queue->tail);
     ffqman_entry_t * el;
     ffstorage_pool_get(qman_entry_pool, (void **) &el);
 
@@ -60,7 +60,7 @@ int ffqman_push(ffqman_t * queue, void * ptr){
 int ffqman_pop(ffqman_t * queue, void ** ptr){
     FFLOCK_LOCK(&(queue->lock));
 
-    FFLOG("POP %p head: %p; tail: %p\n", queue, queue->head, queue->tail);
+    //FFLOG("POP %p head: %p; tail: %p\n", queue, queue->head, queue->tail);
 
 
     ffqman_entry_t *el, *head, *head_next;

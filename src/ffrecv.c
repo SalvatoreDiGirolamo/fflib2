@@ -1,7 +1,7 @@
 #include "ffrecv.h"
 #include "ffop.h"
 
-int ffrecv(void * addr, int count, ffdatatype_h datatype, int source, int16_t tag, 
+int ffrecv(void * addr, int count, ffdatatype_h datatype, int source, int8_t tag, 
     int options, ffop_h * op){
 
     ffbuffer_h buff;
@@ -10,7 +10,7 @@ int ffrecv(void * addr, int count, ffdatatype_h datatype, int source, int16_t ta
     return ffrecv_b(buff, source, tag, options, op);   
 }
 
-int ffrecv_b(ffbuffer_h buffer, int source,int16_t tag, int options, ffop_h * _op){
+int ffrecv_b(ffbuffer_h buffer, int source, int8_t tag, int options, ffop_h * _op){
 
     int res; 
     ffop_t * op;

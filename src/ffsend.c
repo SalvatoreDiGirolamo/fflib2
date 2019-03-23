@@ -1,7 +1,7 @@
 #include "ffsend.h"
 #include "ffop.h"
 
-int ffsend(void * addr, int count, ffdatatype_h datatype, int dest, int16_t tag, 
+int ffsend(void * addr, int count, ffdatatype_h datatype, int dest, int8_t tag, 
     int options, ffop_h * op){
  
     ffbuffer_h buff;
@@ -10,7 +10,7 @@ int ffsend(void * addr, int count, ffdatatype_h datatype, int dest, int16_t tag,
     return ffsend_b(buff, dest, tag, options, op);   
 }
 
-int ffsend_b(ffbuffer_h buffer, int dest, int16_t tag, int options, ffop_h *_op){
+int ffsend_b(ffbuffer_h buffer, int dest, int8_t tag, int options, ffop_h *_op){
 
     int res;   
     ffop_t * op;
