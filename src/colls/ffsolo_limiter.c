@@ -15,7 +15,7 @@ int ffsolo_limiter(int num_async, ffop_h * async_op, ffop_h * sync_op, ffschedul
     for (int i=0; i<num_async; i++){
         ffop_h async_activator;
         ffnop(0, &async_activator);
-        ffop_hb(start_op, async_activator, 0);
+        ffop_hb(start_op, async_activator, FFDEP_IGNORE_VERSION);
         ffop_hb(async_activator, *async_op, FFDEP_IGNORE_VERSION);
         ffschedule_add_op(sched, async_activator);
     }
@@ -23,7 +23,7 @@ int ffsolo_limiter(int num_async, ffop_h * async_op, ffop_h * sync_op, ffschedul
     ffop_h sync_activator;
     ffnop(0, &sync_activator);
     ffop_hb(sync_activator, *sync_op, FFDEP_IGNORE_VERSION);
-    ffop_hb(start_op, sync_activator, 0);
+    ffop_hb(start_op, sync_activator, FFDEP_IGNORE_VERSION);
 
     ffschedule_add_op(sched, sync_activator);
     ffschedule_add_op(sched, start_op);

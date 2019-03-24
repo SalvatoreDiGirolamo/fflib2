@@ -44,6 +44,8 @@ struct ffop{
     struct ffdep_op *dep_first;
     struct ffdep_op *dep_last;
 
+    struct ffdep_op *master_first;
+
     /* true if the op has been posted but not completed */
     uint8_t in_flight; 
 
@@ -97,10 +99,13 @@ struct ffop{
 
 typedef struct ffdep_op{
     struct ffop     *op;
+    struct ffop     *master;
     struct ffop     *fall_back;
     struct ffdep_op *children;
     uint32_t        count;
+    uint32_t        futures;
     struct ffdep_op *next;
+    struct ffdep_op *next_master;
     int              options;
 } ffdep_op_t;
 

@@ -66,14 +66,16 @@ int ffop_post(ffop_h _op){
         return FFINVALID_ARG;
     }
 
-    op->version++;
-    op->instance.dep_left = op->in_dep_count; 
+
 
     return ffop_scheduler_schedule(op);
 }
 
 int ffop_execute(ffop_t * op){
     int res;
+
+    op->version++;
+    op->instance.dep_left = op->in_dep_count; 
 
     uint32_t op_version = op->version;
 
@@ -89,7 +91,7 @@ int ffop_execute(ffop_t * op){
         return FFINVALID_ARG;
     }
 #endif
-    uint8_t already_progressing = op->in_flight;
+    uint8_t already_progressing = 0;// op->in_flight;
     
     if (op->in_flight && 0){
         if (IS_OPT_SET(op, FFOP_COMPLETE_BEFORE_CANCELLING)) {
@@ -118,6 +120,23 @@ int ffop_execute(ffop_t * op){
     /* check if the operation has been immediately completed */
     if (res==FFCOMPLETED && !already_progressing){ ffop_default_progresser_track(op); }
     
+    /* check for futures */
+    ffdep_op_t *cur_master = op->master_first;
+    uint32_t futures_taken = 0;
+    while (cur_master!=NULL){
+        if (cur_master->futures>0){
+            FFLOG("Found future for op %u from op %u (dep_left: %u)\n", op->id, cur_master->master->id, op->instance.dep_left);
+            cur_master->futures--;
+            op->instance.dep_left--;
+            futures_taken++;
+        }
+        cur_master = cur_master->next_master;
+    }
+
+    if (op->in_dep_count > 0 && (op->instance.dep_left==0 || (futures_taken>0 && IS_OPT_SET(op, FFOP_DEP_OR)))) {
+        ffop_post(op);
+    }
+
     return res;
 }
 
@@ -215,7 +234,9 @@ int ffop_hb_fallback(ffop_h _first, ffop_h _second, ffop_h _fall_back, int optio
     dep->options = options;
     dep->fall_back = fall_back;
     dep->count = 0;
+    dep->futures = 0;
     dep->children = NULL;
+    dep->master = first;
 
     if (first->dep_first==NULL){
         first->dep_first        = dep;
@@ -228,6 +249,9 @@ int ffop_hb_fallback(ffop_h _first, ffop_h _second, ffop_h _fall_back, int optio
         first->dep_last         = dep;
     }
 
+    dep->next_master = second->master_first;
+    second->master_first = dep;
+    
     __sync_fetch_and_add(&(second->in_dep_count), 1);
     second->instance.dep_left = second->in_dep_count;
 
@@ -252,6 +276,8 @@ int ffop_create(ffop_t ** ptr){
     op->dep_first                   = NULL;
     op->dep_last                    = NULL;
     op->in_flight                   = 0;
+
+    op->master_first                = NULL;
 
     op->instance.next               = NULL;
     op->instance.dep_left           = 0;
@@ -319,7 +345,8 @@ int ffop_complete(ffop_t * op){
             }
         }
 
-        if (op_version > dep_op_version + 1){
+        if (op_version > dep_op_version + 1 && !IS_OPT_SET(dep, FFDEP_IGNORE_VERSION)){
+            /*
             if (IS_OPT_SET(dep, FFDEP_SKIP_OLD_VERSIONS)) {
                 FFLOG("OLD OP VERSION: skipping (%lu.version (dep_op) = %u; %lu.version (op) = %u); (cur deps left: %u/%u)\n", dep_op->id, dep_op_version, op->id, op_version, dep_op->instance.dep_left, dep_op->in_dep_count);
                 continue;
@@ -327,6 +354,11 @@ int ffop_complete(ffop_t * op){
             //we are updating an operation that is old: it may have partially satisfied dependencies
             FFLOG("OLD OP VERSION: resetting deps to %u (before was %u)\n", dep_op->in_dep_count, dep_op->instance.dep_left);
             dep_op->instance.dep_left = dep_op->in_dep_count; 
+            */
+
+           dep->futures++;
+           FFLOG("OP %u is too old (op: %u; op_version: %u; dep_op: %u; dep_op_version: %u), increasing futures of this dep (futures: %u)\n", dep_op->id, op->id, op_version, dep_op->id, dep_op_version, dep->futures);
+           continue;
         }
 
         if (IS_OPT_SET(dep, FFDEP_NO_AUTOPOST)){
