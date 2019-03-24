@@ -66,6 +66,7 @@ struct ffop{
     uint32_t last_executed_version;
     uint32_t last_completed_version;
 
+    
     /* this is the consumable part that gets reset every time the operation
      * has to be re-executed. */
     struct instance{

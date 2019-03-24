@@ -67,6 +67,7 @@ src/colls/ffallreduce.c
 src/colls/ffactivation.c
 src/colls/ffsolo_allreduce.c
 src/colls/ffsolo_limiter.c
+src/colls/ffrand_allreduce.c
 )
 set_target_properties(fflib PROPERTIES
     VERSION ${PROJECT_VERSION}

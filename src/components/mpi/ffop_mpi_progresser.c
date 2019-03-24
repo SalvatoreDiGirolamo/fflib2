@@ -61,7 +61,7 @@ int ffop_mpi_progresser_release(uint32_t idx){
     return FFSUCCESS;
 }
 
-int ffop_mpi_progresser_progress(ffop_t ** ready_list){
+int ffop_mpi_progresser_progress(ffqman_t *ready_list){
 
     int outcount, res;
     int ready_indices[FFMPI_MAX_REQ];
@@ -77,7 +77,8 @@ int ffop_mpi_progresser_progress(ffop_t ** ready_list){
         ffop_t * readyop = running_ops[ready_indices[i]];
 
         /* mark the operation as complete */ 
-        FFOP_ENQUEUE(readyop, ready_list);
+        //FFOP_ENQUEUE(readyop, ready_list);
+        ffqman_push(ready_list, readyop);
 
         ffop_mpi_progresser_release(ready_indices[i]);
     }

@@ -16,12 +16,13 @@ int ffop_default_progresser_track(ffop_t * op){
     return ffqman_push(&ready_ops, (void *) op);
 }
 
-int ffop_default_progresser_progress(ffop_t ** ready_list){
+int ffop_default_progresser_progress(ffqman_t * ready_list){
     ffop_t * readyop = NULL;
     ffqman_pop(&ready_ops, (void **) &readyop);
     while (readyop!=NULL){
         //FFLOG("Default progresser found op %lu completed\n", readyop->id);
-        FFOP_ENQUEUE(readyop, ready_list);      
+        //FFOP_ENQUEUE(readyop, ready_list);      
+        ffqman_push(ready_list, readyop);
         ffqman_pop(&ready_ops, (void **) &readyop);
     }
     return FFSUCCESS;

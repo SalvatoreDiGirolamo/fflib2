@@ -90,7 +90,8 @@ int ffop_execute(ffop_t * op){
     }
 #endif
     uint8_t already_progressing = op->in_flight;
-    if (op->in_flight){
+    
+    if (op->in_flight && 0){
         if (IS_OPT_SET(op, FFOP_COMPLETE_BEFORE_CANCELLING)) {
             // post(op), post(op), exec(op); here we handle the case
             // in which the same op has been posted multiple time before 
@@ -102,10 +103,10 @@ int ffop_execute(ffop_t * op){
             op->last_completed_version = op_version - 1;
         }
 
-        ffop_cancel((ffop_h) op);         
+        //ffop_cancel((ffop_h) op);         
         already_progressing = 1;
     }
-
+    
     op->last_executed_version++;
     op->in_flight = 1;
     op->instance.completed = 0;
@@ -270,10 +271,18 @@ int ffop_create(ffop_t ** ptr){
 
 int ffop_complete(ffop_t * op){
 
+#ifdef FFDEBUG
+    if (op->version <= op->last_completed_version){
+        FFLOG("ERROR: op %u; version: %u greater than last_completed_version: %u\n", op->id, op->version, op->last_completed_version);
+        assert(0);
+    }
+#endif
+
     assert(op->version > op->last_completed_version);
     uint32_t op_version = ++op->last_completed_version;
 
     FFLOG("completing op %lu (version: %u)\n", op->id, op_version);
+
     op->in_flight = 0;
     // restore dep_left, so the op can be reused
     //op->instance.dep_left = op->in_dep_count; 

@@ -5,10 +5,11 @@
 
 #include "ffop.h"
 #include "ffinternal.h"
+#include "utils/ffqman.h"
 
 typedef int (*ffprogresser_init_t)();
 typedef int (*ffprogresser_finalize_t)();
-typedef int (*ffprogresser_progress_t)(ffop_t **);
+typedef int (*ffprogresser_progress_t)(ffqman_t *);
 
 
 typedef struct ffprogresser {
