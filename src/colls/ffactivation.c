@@ -8,7 +8,7 @@ int ffactivation_delete(ffschedule_h sched){
     free(buff);
 }
 
-int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_activator_test, ffop_h *activation_join, ffschedule_h *_sched){
+int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h *auto_activator, ffop_h * user_activator_test, ffop_h *activation_join, ffschedule_h *_sched){
     ffschedule_h sched;
     FFCALL(ffschedule_create(&sched));
 
@@ -31,7 +31,9 @@ int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_act
     ffschedule_get_begin_op(sched, &sched_begin_op);   
 
     ffnop(FFOP_DEP_OR, user_activator); 
-    ffop_hb(sched_begin_op, *user_activator, FFDEP_NO_AUTOPOST);
+    //ffop_hb(sched_begin_op, *user_activator, FFDEP_NO_AUTOPOST);
+
+    ffnop(FFOP_DEP_OR, auto_activator);
 
     ffop_h prev_dep = *user_activator;
     int mask = 0x1, cnt=0;
@@ -60,6 +62,7 @@ int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_act
 
             //recv
             ffrecv(buff, 1, FFINT32, dst, tag, options, &recv);
+            ffop_hb(*auto_activator, recv, 0);
 
             recvs[cnt] = recv;
             completions[cnt] = completion;
@@ -77,6 +80,7 @@ int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_act
     if (cnt>0) *user_activator_test = completions[0];
 
     ffschedule_add_op(sched, *user_activator);
+    ffschedule_add_op(sched, *auto_activator);
 
     ffop_h sched_completion;
     ffnop(FFOP_DEP_OR, &sched_completion);

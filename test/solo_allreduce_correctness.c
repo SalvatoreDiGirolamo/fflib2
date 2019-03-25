@@ -86,11 +86,12 @@ int main(int argc, char * argv[]){
     
         MPI_Allreduce(to_reduce, mpi_reduced, count, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-        print_array("FFLIB", reduced, count);
-        print_array("MPI", mpi_reduced, count);
 
         if (compare_buffers(reduced, mpi_reduced, count)!=0){
             printf("[%i] Correctness check failed (it %i)!\n", rank, i);
+
+            print_array("FFLIB", reduced, count);
+            print_array("MPI", mpi_reduced, count);
 
             assert(0);
         }

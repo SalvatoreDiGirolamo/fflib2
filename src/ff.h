@@ -159,7 +159,7 @@ int ffschedule_set_test_fun(ffschedule_h handle, ffschedule_test_fun_t fun);
 int ffschedule_set_print_fun(ffschedule_h handle, ffschedule_print_fun_t fun);
 
 int ffallreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h ffoperator, ffdatatype_h datatype, int options, ffschedule_h * _sched);
-int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h * user_activator_test, ffop_h *activation_join, ffschedule_h *_sched);
+int ffactivation(int options, int tag, ffop_h *user_activator, ffop_h *auto_activator, ffop_h * user_activator_test, ffop_h *activation_join, ffschedule_h *_sched);
 int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h ffoperator, ffdatatype_h datatype, int options, int async, ffschedule_h * _sched);
 int ffsolo_limiter(int num_async, ffop_h * async_op, ffop_h * sync_op, ffschedule_h * _sched);
 int ffrand_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h operator, ffdatatype_h datatype, int options, int seed, ffschedule_h * _sched);

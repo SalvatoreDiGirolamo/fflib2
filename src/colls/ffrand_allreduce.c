@@ -38,8 +38,8 @@ int ffrand_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
 
     //create the activation schedule
     //activation_schedule_op is the op to post to activate the schedule internally
-    ffop_h activation_schedule_test, activation_schedule_link, activation_schedule_op, activation_schedule_root, activation_join;
-    ffactivation(FFSHADOW_TAG, 0, &activation_schedule_op, &activation_schedule_test, &activation_join, &(state->activation_schedule));
+    ffop_h activation_schedule_test, activation_schedule_link, activation_schedule_op, activation_schedule_root, activation_join, activation_auto;
+    ffactivation(FFSHADOW_TAG, 0, &activation_schedule_op, &activation_auto, &activation_schedule_test, &activation_join, &(state->activation_schedule));
     ffschedule_get_begin_op(state->activation_schedule, &activation_schedule_root);
     ffschedule_get_end_op(state->activation_schedule, &activation_schedule_link);
     
@@ -50,7 +50,7 @@ int ffrand_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     ffschedule_get_end_op(state->allreduce_schedule, &allreduce_end);
 
     ffop_hb(activation_join, allreduce_begin, 0);
-    ffop_hb(allreduce_end, activation_schedule_root, FFDEP_IGNORE_VERSION);
+    ffop_hb(allreduce_end, activation_auto, FFDEP_IGNORE_VERSION);
 
     state->allreduce_activation_test = activation_schedule_test;
     state->allreduce_ends = allreduce_end;

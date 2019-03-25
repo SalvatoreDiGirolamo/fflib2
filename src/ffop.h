@@ -62,6 +62,8 @@ struct ffop{
     /* current version of the op that has to be posted */
     volatile uint32_t version;
 
+    volatile uint32_t posted_version;
+
     /* last version it has been waited for */
     uint32_t wait_version;
     

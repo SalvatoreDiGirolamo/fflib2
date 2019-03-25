@@ -66,7 +66,7 @@ int ffop_post(ffop_h _op){
         return FFINVALID_ARG;
     }
 
-
+    op->posted_version++;
 
     return ffop_scheduler_schedule(op);
 }
@@ -271,6 +271,7 @@ int ffop_create(ffop_t ** ptr){
     op->options                     = FFOP_DEP_AND;
     op->version                     = 0;
     op->wait_version                = 0;
+    op->posted_version              = 0;
 
     op->dep_next                    = NULL;
     op->dep_first                   = NULL;
@@ -327,13 +328,13 @@ int ffop_complete(ffop_t * op){
         ffdep_op_t * dep = op->dep_next;
         ffop_t * dep_op = dep->op;
         op->dep_next = op->dep_next->next;
-        uint32_t dep_op_version = dep_op->version;
+        uint32_t dep_op_version = dep_op->posted_version;
 
         if (op_version <= dep_op_version && !IS_OPT_SET(dep, FFDEP_IGNORE_VERSION)) {
             FFLOG("ffop version mismatch -> dependency not satisfied (%lu.version (dep_op) = %u; %lu.version (op) = %u); \n", dep_op->id, dep_op_version, op->id, op_version);
             if (dep->fall_back!=NULL) {
                 dep_op = dep->fall_back;
-                dep_op_version = dep_op->version;  
+                dep_op_version = dep_op->posted_version;  
                 FFLOG("ffop version mismatch FOUND FALLBACK! (%lu.version (dep_op) = %u; %lu.version (op) = %u);\n", dep_op->id, dep_op_version, op->id, op_version);
 
                 if (op_version <= dep_op_version && !IS_OPT_SET(dep, FFDEP_IGNORE_VERSION)) {

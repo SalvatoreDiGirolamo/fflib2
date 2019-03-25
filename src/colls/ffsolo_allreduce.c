@@ -7,6 +7,7 @@ typedef struct solo_allreduce_state{
     ffschedule_h solo_limiter;
     ffop_h allreduce_ends;
     ffop_h allreduce_activation_test;  //op that needs to be tested to check if a local activation completed (two activations should not overlap)
+    ffop_h activation_auto;
 } solo_allreduce_state_t;
 
 int ffsolo_allreduce_post(ffschedule_h sched);
@@ -32,10 +33,11 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     ffschedule_set_print_fun(sched, ffsolo_allreduce_print);
 
     //create the activation schedule
-    ffop_h activation_schedule_test, activation_schedule_link, activation_schedule_op, activation_schedule_root, activation_join;
-    ffactivation(FFSHADOW_TAG, 0, &activation_schedule_op, &activation_schedule_test, &activation_join, &(state->activation_schedule));
+    ffop_h activation_schedule_test, activation_schedule_link, activation_schedule_op, activation_schedule_root, activation_join, activation_auto;
+    ffactivation(FFSHADOW_TAG, 0, &activation_schedule_op, &activation_auto, &activation_schedule_test, &activation_join, &(state->activation_schedule));
     ffschedule_get_begin_op(state->activation_schedule, &activation_schedule_root);
     ffschedule_get_end_op(state->activation_schedule, &activation_schedule_link);
+    state->activation_auto = activation_auto;
     
     //create the async allreduce schedule
     ffop_h allreduce_begin, allreduce_end;  
@@ -71,7 +73,7 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     ffop_hb(limiter_sync, sync_allreduce_begin, FFDEP_IGNORE_VERSION);
 
     ffop_hb(activation_join, allreduce_begin, 0);
-    ffop_hb(allreduce_end, activation_schedule_root, FFDEP_IGNORE_VERSION);
+    ffop_hb(allreduce_end, activation_auto, FFDEP_IGNORE_VERSION);
   
     ffnop(FFOP_DEP_OR, &(state->allreduce_ends));
     ffop_hb(allreduce_end, state->allreduce_ends, FFDEP_IGNORE_VERSION);
@@ -83,7 +85,7 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     ffschedule_add_op(sched, allreduce_activate);
     ffschedule_add_op(sched, state->allreduce_activation_test);
 
-
+    
 
     //FIXME: TODO
     // 1) add multiple buffers
@@ -95,7 +97,7 @@ int ffsolo_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
 int ffsolo_allreduce_start(ffschedule_h sched){
     solo_allreduce_state_t * state;
     ffschedule_get_state(sched, (void **) &state);
-    return ffschedule_post(state->activation_schedule);
+    return ffop_post(state->activation_auto);
 }
 
 int ffsolo_allreduce_post(ffschedule_h sched){

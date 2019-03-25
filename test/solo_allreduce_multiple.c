@@ -38,8 +38,10 @@ int main(int argc, char * argv[]){
 
     printf("Slowing down at most %i processes at each iteration\n", to_slow_down);
 
-    srand(time(NULL)/(rank+1));
-   
+    srand(434656342);
+    int slow_one = rand() % size;
+
+
     ffschedule_h solo_allreduce_sched;
     ffsolo_allreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, 20, &solo_allreduce_sched);
 
@@ -51,19 +53,21 @@ int main(int argc, char * argv[]){
     MPI_Barrier(MPI_COMM_WORLD);
 
     ffschedule_start(solo_allreduce_sched);
+    
+    printf("slow process: %i\n", slow_one);   
 
     for(int i=0; i<iters; i++){
-        FFLOG("Iteration %i\n", i);
         for (int i=0; i<count; i++){
             to_reduce[i]++;
         }
-    
-        for (int j=0; j<to_slow_down; j++){
-            if (rank == rand() % size){
-                usleep(1000*(rand()/RAND_MAX));
-            }
+           
+        //for (int j=0; j<to_slow_down; j++){
+        if (rank == slow_one){
+            usleep(1000000);
         }
+        //}
 
+        FFLOG("Iteration %i\n", i);
         ffschedule_post(solo_allreduce_sched);
         ffschedule_wait(solo_allreduce_sched);
         print_array(reduced, count);
