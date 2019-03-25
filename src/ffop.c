@@ -137,7 +137,7 @@ int ffop_execute(ffop_t * op){
         ffop_post(op);
     }
 
-    return res;
+    return res; 
 }
 
 int ffop_wait(ffop_h _op){
