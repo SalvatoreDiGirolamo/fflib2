@@ -64,7 +64,7 @@ int ffop_gcomp_operator_copy(void * a, void * b, void* c, uint32_t size, ffdatat
 
     int rank;
     ffrank(&rank);
-    printf("[%i] [DELETE ME] COPYING %u x %lu from %p to %p\n", rank, size, unitsize, a, c);
+    //printf("[%i] [DELETE ME] COPYING %u x %lu from %p to %p\n", rank, size, unitsize, a, c);
     
     FFLOG("COPYING %u x %lu from %p to %p\n", size, unitsize, a, c);
     memcpy(c, a, size*unitsize);

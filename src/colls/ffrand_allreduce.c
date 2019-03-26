@@ -7,6 +7,7 @@ typedef struct rand_allreduce_state{
     ffop_h allreduce_ends;
     ffop_h allreduce_activation_test;  //op that needs to be tested to check if a local activation completed (two activations should not overlap)
     ffop_h activation_op;
+    ffop_h activation_auto;
     uint32_t current_activator;
     uint32_t passive_activations;
     uint32_t myrank;
@@ -55,6 +56,7 @@ int ffrand_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     state->allreduce_activation_test = activation_schedule_test;
     state->allreduce_ends = allreduce_end;
     state->activation_op = activation_schedule_op;
+    state->activation_auto = activation_auto;
 
     state->passive_activations = 0;
     state->seed = seed;
@@ -71,7 +73,7 @@ int ffrand_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
 int ffrand_allreduce_start(ffschedule_h sched){
     rand_allreduce_state_t * state;
     ffschedule_get_state(sched, (void **) &state);
-    return ffschedule_post(state->activation_schedule);
+    return ffop_post(state->activation_auto);
 }
 
 int ffrand_allreduce_post(ffschedule_h sched){

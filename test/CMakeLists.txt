@@ -29,6 +29,7 @@ set(TEST_C_SRCS
   solo_allreduce_correctness
   ssgd
   rand_allreduce
+  rand_allreduce_correctness
 )
 
 set(TEST_CPP_SRCS
