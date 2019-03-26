@@ -67,14 +67,14 @@ int main(int argc, char * argv[]){
         }
         //}
 
-        FFLOG("Iteration %i\n", i);
+        printf("[%i] Iteration %i\n", rank, i);
         ffschedule_post(solo_allreduce_sched);
         ffschedule_wait(solo_allreduce_sched);
-        print_array(reduced, count);
+        //print_array(reduced, count);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
-    FFLOG("Completed\n");
+    printf("[%i] Completed\n", rank);
 
     fffinalize();    
     free(reduced);

@@ -41,10 +41,10 @@ int main(int argc, char * argv[]){
     MPI_Barrier(MPI_COMM_WORLD);
     if (rank==0){
         for(int i=0; i<iters; i++){
-            FFLOG(" #### Starting iteration %i ####\n", i);
+            printf(" #### Starting iteration %i ####\n", i);
             ffschedule_post(solo_allreduce_sched);
             ffschedule_wait(solo_allreduce_sched);
-            print_array(reduced, count);
+            //print_array(reduced, count);
         }   
         MPI_Request req;
         MPI_Ibarrier(MPI_COMM_WORLD, &req);
@@ -58,7 +58,7 @@ int main(int argc, char * argv[]){
             for (int i=0; i<count; i++){
                 to_reduce[i]++;
             }
-            print_array(reduced, count);
+            //print_array(reduced, count);
             MPI_Test(&req, &completed, MPI_STATUS_IGNORE);
         }while(!completed);
     }

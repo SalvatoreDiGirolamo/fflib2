@@ -54,7 +54,7 @@ int main(int argc, char * argv[]){
     ffschedule_start(rand_allreduce_sched);
 
     for(int i=0; i<iters; i++){
-        FFLOG("Iteration %i\n", i);
+        printf("[%i] Iteration %i\n", rank, i);
         for (int i=0; i<count; i++){
             to_reduce[i]++;
         }
@@ -68,11 +68,11 @@ int main(int argc, char * argv[]){
         ffschedule_post(rand_allreduce_sched);
         ffschedule_wait(rand_allreduce_sched);
 
-        print_array(reduced, count);
+        //print_array(reduced, count);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
-    FFLOG("Completed\n");
+    printf("[%i] Completed\n", rank);
 
     fffinalize();    
     free(reduced);
