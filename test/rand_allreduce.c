@@ -42,7 +42,7 @@ int main(int argc, char * argv[]){
     srand(time(NULL)/(rank+1));
    
     ffschedule_h rand_allreduce_sched;
-    ffrand_allreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, seed, &rand_allreduce_sched);
+    ffrand_allreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, seed, 20, &rand_allreduce_sched);
 
     if (rank==0){
         FILE * fp = fopen("test_vis", "w+");

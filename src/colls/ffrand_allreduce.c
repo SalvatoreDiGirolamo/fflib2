@@ -12,6 +12,8 @@ typedef struct rand_allreduce_state{
     uint32_t passive_activations;
     uint32_t myrank;
     uint32_t seed;
+    uint32_t count;
+    uint32_t async;
     uint32_t comm_size;
 } rand_allreduce_state_t;
 
@@ -22,7 +24,7 @@ int ffrand_allreduce_delete(ffschedule_h sched);
 int ffrand_allreduce_start(ffschedule_h sched);
 int ffrand_allreduce_print(ffschedule_h handle, FILE * fp, char * name);
 
-int ffrand_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h operator, ffdatatype_h datatype, int options, int seed, ffschedule_h * _sched){
+int ffrand_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h operator, ffdatatype_h datatype, int options, int seed, int async, ffschedule_h * _sched){
 
     rand_allreduce_state_t * state = (rand_allreduce_state_t *) malloc(sizeof(rand_allreduce_state_t));
 
@@ -40,7 +42,7 @@ int ffrand_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     //create the activation schedule
     //activation_schedule_op is the op to post to activate the schedule internally
     ffop_h activation_schedule_test, activation_schedule_link, activation_schedule_op, activation_schedule_root, activation_join, activation_auto;
-    ffactivation(FFSHADOW_TAG, 0, &activation_schedule_op, &activation_auto, &activation_schedule_test, &activation_join, &(state->activation_schedule));
+    ffactivation(FFSHADOW_TAG, tag, &activation_schedule_op, &activation_auto, &activation_schedule_test, &activation_join, &(state->activation_schedule));
     ffschedule_get_begin_op(state->activation_schedule, &activation_schedule_root);
     ffschedule_get_end_op(state->activation_schedule, &activation_schedule_link);
     
@@ -60,6 +62,8 @@ int ffrand_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
 
     state->passive_activations = 0;
     state->seed = seed;
+    state->count = 0;
+    state->async = async;
     ffrank(&(state->myrank));
     ffsize(&(state->comm_size));
 
@@ -79,10 +83,11 @@ int ffrand_allreduce_start(ffschedule_h sched){
 int ffrand_allreduce_post(ffschedule_h sched){
     rand_allreduce_state_t * state;
     ffschedule_get_state(sched, (void **) &state);
+    state->count++;
 
     state->current_activator = rand_r(&(state->seed)) % state->comm_size;
     FFLOG("Activator: %u\n", state->current_activator);
-    if (state->current_activator == state->myrank){
+    if (state->current_activator == state->myrank || state->count % state->async == 0){
         FFLOG("Catching up %u passive activations\n", state->passive_activations);
         for (int i=0; i<state->passive_activations; i++){
             ffop_post(state->activation_op);

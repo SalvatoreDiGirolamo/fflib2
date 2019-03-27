@@ -1,6 +1,7 @@
 
 #include "ffop_mpi_progresser.h"
 #include "utils/ffarman.h"
+#include <assert.h>
 //#include "../utils/fflock.h"
 
 static ffop_t *    running_ops[FFMPI_MAX_REQ];
@@ -37,8 +38,24 @@ int ffop_mpi_progresser_track(ffop_t * op, MPI_Request req, uint32_t * save_idx)
     *save_idx = idx;
     FFLOG("progresser is now tracking op %lu (ver: %u) with idx %u\n", op->id, op->version, idx);
     //printf("getting idx: %i\n", idx);
-    if (idx<0){
+    if (idx==(uint32_t) -1){
         FFLOG_ERROR("Too many in-flight MPI operations! (check FFMPI_MAX_REQ)");
+
+#ifdef FFDEBUG
+        int inflight=0;
+        for (int i=0; i<FFMPI_MAX_REQ; i++){
+            if (requests[i] != NULL){
+                MPI_Status status;
+                int flag;
+                MPI_Request_get_status(requests[i], &flag, &status);
+                uint32_t opid = (running_ops[i]!=NULL) ? running_ops[i]->id : -1;
+                FFLOG("MPI DUMP: %i op %u (%i/%i); count: %lu; cancelled: %i; source: %i; tag: %i; error: %i\n", inflight, opid, i, FFMPI_MAX_REQ, status._ucount, status._cancelled, status.MPI_SOURCE, status.MPI_TAG, status.MPI_ERROR);
+                inflight++;
+            }
+        }
+#endif
+
+        assert(0);
         return FFENOMEM;
     }
 

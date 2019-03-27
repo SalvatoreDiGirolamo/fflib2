@@ -7,6 +7,8 @@ int ffarman_create(uint32_t count, ffarman_t * array){
 
     array->free_entries = (entry_t *) malloc(sizeof(entry_t) * (count+1));
     array->tofree = array->free_entries;
+    array->capacity = count;
+    array->count = 0;
 
     if (array->free_entries==NULL){
         return FFENOMEM;    
@@ -33,7 +35,9 @@ int ffarman_free(ffarman_t * array){
 uint32_t ffarman_get(ffarman_t * array){   
 
     FFLOCK_LOCK(&(array->lock));
-
+#ifdef FFDEBUG
+    FFLOG("arman: %p  %u/%u\n", array, array->count, array->capacity);
+#endif
     uint32_t res = -1;
     entry_t * e = array->free_entries;
     if (e != NULL) {
@@ -47,10 +51,12 @@ uint32_t ffarman_get(ffarman_t * array){
         array->free_free_entries = e;
         res = e->idx;
     }   
- 
+ #ifdef FFDEBUG
+    array->count++;
+#endif
     FFLOCK_UNLOCK(&(array->lock));
     /* return the index */
-    assert(res!=-1);
+    //assert(res!=-1);
     return res;
 }
 
@@ -58,6 +64,10 @@ int ffarman_put(ffarman_t * array, uint32_t idx){
 
     FFLOCK_LOCK(&(array->lock));
     /* take an entry that we can use to store the free_entry */
+
+#ifdef FFDEBUG
+    FFLOG("arman: %p  %u/%u\n", array, array->count, array->capacity);
+#endif
     entry_t * e = array->free_free_entries;
     assert(e!=NULL);
 
@@ -68,6 +78,9 @@ int ffarman_put(ffarman_t * array, uint32_t idx){
     /* make the entry available */
     e->next = array->free_entries;
     array->free_entries = e;
+#ifdef FFDEBUG
+    array->count--;
+#endif
     FFLOCK_UNLOCK(&(array->lock));    
 
     return FFSUCCESS;

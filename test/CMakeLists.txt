@@ -28,6 +28,7 @@ set(TEST_C_SRCS
   solo_allreduce_multiple
   solo_allreduce_correctness
   ssgd
+  rsgd
   rand_allreduce
   rand_allreduce_correctness
 )

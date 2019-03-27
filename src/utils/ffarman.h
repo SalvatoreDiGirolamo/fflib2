@@ -19,6 +19,9 @@ typedef struct ffarman{
     /* pointer to the memory to be freed */
     entry_t * tofree;
     
+    uint32_t capacity;
+    uint32_t count; //used only if FFDEBUG defined!
+
     FFLOCK_TYPE lock;
 
 } ffarman_t;
