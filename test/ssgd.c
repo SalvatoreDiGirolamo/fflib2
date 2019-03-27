@@ -59,13 +59,12 @@ int main(int argc, char *argv[])
     srand(time(NULL) / (rank + 1));
 
     ffschedule_h solo_allreduce_sched[N];
-    ffop_h solo_probe[N];
-/*
+
     for (int i = 0; i < N; i++)
     {
-        ffsolo_allreduce(to_reduce[i], reduced[i], count, tag++, FFSUM, FFINT32, 0, 20, &(solo_allreduce_sched[i]), &solo_probe[i]);
+        ffsolo_allreduce(to_reduce[i], reduced[i], count, tag++, FFSUM, FFINT32, 0, 20, &solo_allreduce_sched[i]);
     }
-*/
+
 
 
     //ffsolo_allreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, 20, &solo_allreduce_sched);
