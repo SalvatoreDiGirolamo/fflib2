@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     {
     //ffallreduce(to_reduce[i], reduced[i], count, tag++, FFSUM, FFINT32, 0, &(solo_allreduce_sched[i]));  
         //printf("Threads number = %d\n", num_threads); 
-        ffrand_allreduce(to_reduce[i], reduced[i], count, tag++, FFSUM, FFINT32, 0, seed, 20, &(solo_allreduce_sched[i]));
+        ffrand_allreduce(to_reduce[i], reduced[i], count, tag++, FFSUM, FFINT32, 0, seed, &(solo_allreduce_sched[i]));
     }
 
 

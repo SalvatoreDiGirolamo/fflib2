@@ -64,7 +64,7 @@ int main(int argc, char * argv[]){
     uint32_t seed = 34495645;
    
     ffschedule_h solo_allreduce_sched;
-    ffrand_allreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, seed, 20, &solo_allreduce_sched);
+    ffrand_allreduce(to_reduce, reduced, count, 0, FFSUM, FFINT32, 0, seed, &solo_allreduce_sched);
 
     if (rank==0){
         FILE * fp = fopen("test_vis", "w+");

@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
             {
                 if (rank == rand() % size)
                 {
-                    usleep(1000 * (rand() / RAND_MAX));
+                    usleep(10000 * (rand() / RAND_MAX));
                 }
             }
 

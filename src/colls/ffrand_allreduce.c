@@ -9,12 +9,11 @@ typedef struct rand_allreduce_state{
     ffop_h activation_op;
     ffop_h activation_auto;
     uint32_t current_activator;
-    uint32_t passive_activations;
     uint32_t myrank;
     uint32_t seed;
     uint32_t count;
-    uint32_t async;
     uint32_t comm_size;
+    uint8_t catchup;
 } rand_allreduce_state_t;
 
 int ffrand_allreduce_post(ffschedule_h sched);
@@ -24,7 +23,7 @@ int ffrand_allreduce_delete(ffschedule_h sched);
 int ffrand_allreduce_start(ffschedule_h sched);
 int ffrand_allreduce_print(ffschedule_h handle, FILE * fp, char * name);
 
-int ffrand_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h operator, ffdatatype_h datatype, int options, int seed, int async, ffschedule_h * _sched){
+int ffrand_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffoperator_h operator, ffdatatype_h datatype, int options, int seed, ffschedule_h * _sched){
 
     rand_allreduce_state_t * state = (rand_allreduce_state_t *) malloc(sizeof(rand_allreduce_state_t));
 
@@ -60,10 +59,9 @@ int ffrand_allreduce(void * sndbuff, void * rcvbuff, int count, int16_t tag, ffo
     state->activation_op = activation_schedule_op;
     state->activation_auto = activation_auto;
 
-    state->passive_activations = 0;
     state->seed = seed;
     state->count = 0;
-    state->async = async;
+    state->catchup = 0;
     ffrank(&(state->myrank));
     ffsize(&(state->comm_size));
 
@@ -87,16 +85,17 @@ int ffrand_allreduce_post(ffschedule_h sched){
 
     state->current_activator = rand_r(&(state->seed)) % state->comm_size;
     FFLOG("Activator: %u\n", state->current_activator);
-    if (state->current_activator == state->myrank || state->count % state->async == 0){
-        FFLOG("Catching up %u passive activations\n", state->passive_activations);
-        for (int i=0; i<state->passive_activations; i++){
-            ffop_post(state->activation_op);
-            ffop_wait(state->allreduce_activation_test);
-        }
-        FFLOG("Done, posting the actual one!\n");
-        state->passive_activations = 0;
+
+
+    if (state->catchup){
+        ffop_post(state->activation_op);
+        ffop_wait(state->allreduce_activation_test);
+        state->catchup = 0;
+    }
+
+    if (state->current_activator == state->myrank){
         return ffop_post(state->activation_op);
-    } state->passive_activations++;
+    } state->catchup = 1;
     return FFSUCCESS;
 }
 
